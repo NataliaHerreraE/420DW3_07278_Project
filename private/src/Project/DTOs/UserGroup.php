@@ -31,6 +31,7 @@ class UserGroup extends AbstractDTO {
     private string $description;
     private ?DateTime $createdAt;
     private ?DateTime $updatedAt;
+    private bool $isDeleted;
     
     protected function __construct() {
         parent::__construct();
@@ -75,6 +76,7 @@ class UserGroup extends AbstractDTO {
         $object->setUpdatedAt(
             DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
         );
+        $object->setIsDeleted($dbAssocArray['is_deleted']);
         return $object;
     }
     
@@ -187,6 +189,31 @@ class UserGroup extends AbstractDTO {
     }
     
     /**
+     * TODO: Function documentation getIsDeleted
+     *
+     * @return bool
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-24
+     */
+    public function getIsDeleted(): bool {
+        return $this->isDeleted;
+    }
+    
+    /**
+     * TODO: Function documentation setIsDeleted
+     *
+     * @param bool $isDeleted
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-24
+     */
+    public function setIsDeleted(bool $isDeleted): void {
+        $this->isDeleted = $isDeleted;
+    }
+    
+    /**
      * TODO: Function documentation validateForDbCreation
      *
      * @param bool $optThrowExceptions
@@ -241,6 +268,12 @@ class UserGroup extends AbstractDTO {
         if ($this->id === null) {
             if ($optThrowExceptions) {
                 throw new ValidationException("User group ID is required for deletion.");
+            }
+            return false;
+        }
+        if ($this->isDeleted) {
+            if ($optThrowExceptions) {
+                throw new ValidationException("User is already marked as deleted.");
             }
             return false;
         }

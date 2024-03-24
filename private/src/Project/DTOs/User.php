@@ -39,6 +39,8 @@ class User extends AbstractDTO {
     private string $email;
     private ?DateTime $createdAt;
     private ?DateTime $updatedAt;
+    private bool $isDeleted;
+    
     
     protected function __construct() {
         parent::__construct();
@@ -86,6 +88,7 @@ class User extends AbstractDTO {
         $object->setUpdatedAt(
             DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
         );
+        $object->setIsDeleted($dbAssocArray['is_deleted']);
         return $object;
     }
     
@@ -226,6 +229,30 @@ class User extends AbstractDTO {
     }
     
     /**
+     * TODO: Function documentation getIsDeleted
+     * @return bool
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-24
+     */
+    public function getIsDeleted(): bool {
+        return $this->isDeleted;
+    }
+    
+    /**
+     * TODO: Function documentation setIsDeleted
+     *
+     * @param bool $isDeleted
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-24
+     */
+    public function setIsDeleted(bool $isDeleted): void {
+        $this->isDeleted = $isDeleted;
+    }
+    
+    /**
      * @inheritDoc
      */
     public function getDatabaseTableName() : string {
@@ -316,8 +343,8 @@ class User extends AbstractDTO {
             }
             return false;
         }
-        //check if the user has been already marked as deleted
-        if ($this->deletionDate !== null) {
+        // Check if the user has been already marked as deleted
+        if ($this->isDeleted) {
             if ($optThrowExceptions) {
                 throw new ValidationException("User is already marked as deleted.");
             }
