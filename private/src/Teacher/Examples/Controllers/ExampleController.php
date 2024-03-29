@@ -14,6 +14,7 @@ namespace Teacher\Examples\Controllers;
 use Teacher\Examples\DAOs\ExampleDAO;
 use Teacher\Examples\Services\ExampleService;
 use Teacher\GivenCode\Abstracts\AbstractController;
+use Teacher\GivenCode\Exceptions\RequestException;
 
 /**
  * TODO: Class documentation
@@ -29,19 +30,31 @@ class ExampleController extends AbstractController {
         $this->exampleService = new ExampleService();
     }
     
-    public function get() {
-        // TODO: HTTP GET handling
+    public function get() : void {
+        ob_start();
+        if (empty($_REQUEST["exampleId"])) {
+            throw new RequestException("Bad request: required parameter [exampleID] not found in the request.", 400);
+        }
+        if (!is_numeric($_REQUEST["exampleId"])) {
+            throw new RequestException("Bad request: parameter [exampleID] value [" . $_REQUEST["exampleId"] .
+                                       "] is not numeric.", 400);
+        }
+        $int_id = (int) $_REQUEST["exampleId"];
+        $instance = $this->exampleService->getById($int_id);
+        header("Content-Type: application/json;charset=UTF-8");
+        echo $instance->toJson();
+        ob_end_flush();
     }
     
-    public function post() {
+    public function post() : void {
         // TODO: HTTP POST handling
     }
     
-    public function put() {
+    public function put() : void {
         // TODO: HTTP PUT handling
     }
     
-    public function delete() {
+    public function delete() : void {
         // TODO: HTTP DELETE handling
     }
 }

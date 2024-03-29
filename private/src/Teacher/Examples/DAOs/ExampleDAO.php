@@ -47,6 +47,33 @@ class ExampleDAO implements IDAO {
     public function __construct() {}
     
     /**
+     * TODO: Function documentation
+     *
+     * @param bool $includeDeleted
+     * @return ExampleDTO[]
+     * @throws RuntimeException
+     * @throws ValidationException
+     *
+     * @author Marc-Eric Boury
+     * @since  2024-03-21
+     */
+    public function getAll(bool $includeDeleted = false) : array {
+        $connection = DBConnectionService::getConnection();
+        if ($includeDeleted) {
+            $statement = $connection->prepare("SELECT * FROM " . ExampleDTO::TABLE_NAME);
+        } else {
+            $statement = $connection->prepare("SELECT * FROM " . ExampleDTO::TABLE_NAME . " WHERE `deleted_at` IS NULL ;");
+        }
+        $statement->execute();
+        $results_array = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $object_array = [];
+        foreach ($results_array as $result) {
+            $object_array[] = ExampleDTO::fromDbArray($result);
+        }
+        return $object_array;
+    }
+    
+    /**
      * {@inheritDoc}
      * Specialized for {@see ExampleDTO} DTO objects.
      *
@@ -71,10 +98,11 @@ class ExampleDAO implements IDAO {
         $statement->bindValue(":id", $id, PDO::PARAM_INT);
         $statement->execute();
         
-        $array = $statement->fetch(PDO::FETCH_ASSOC) || throw new RuntimeException("No record found for id# [$id].");
-        // Shutting up the PHP interpreter that thinks the fetch() method can return a bool. The OR (||) case above
-        // takes care of when fetch() fails and returns false.
-        /** @noinspection PhpParamsInspection */
+        $array = $statement->fetch(PDO::FETCH_ASSOC);
+        if (is_bool($array) && !$array) {
+            // failed fetch
+            throw new RuntimeException("No record found for id# [$id].");
+        }
         return ExampleDTO::fromDbArray($array);
     }
     
@@ -161,9 +189,11 @@ class ExampleDAO implements IDAO {
      * Specialized for {@see ExampleDTO} DTO objects.
      *
      * @param int  $id          The identifier value of the {@see ExampleDTO} entity to delete
-     * @param bool $realDeletes [OPTIONAL] whether to perform a real record deletion or just mark it with a deletion date. Defaults to <code>false</code>.
+     * @param bool $realDeletes [OPTIONAL] whether to perform a real record deletion or just mark it with a deletion
+     *                          date. Defaults to <code>false</code>.
      * @return void
      *
+     * @throws RuntimeException
      * @author Marc-Eric Boury
      * @since  2024-03-17
      */
