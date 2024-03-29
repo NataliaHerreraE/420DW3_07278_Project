@@ -29,6 +29,12 @@ define("PRJ_ROOT_DIR",
        realpath(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "..") . DIRECTORY_SEPARATOR);
 
 /**
+ * The name of the project's root directory
+ * @const
+ */
+define("PRJ_ROOT_DIRNAME", basename(PRJ_ROOT_DIR));
+
+/**
  * Absolute path to the 'public' directory of the project.
  * @const
  */
@@ -74,7 +80,15 @@ const PRJ_JS_DIR = PRJ_PUBLIC_DIR . "js" . DIRECTORY_SEPARATOR;
  * Absolute path to the public 'pages' directory of the project.
  * @const
  */
-const PRJ_PAGES_DIRE = PRJ_PUBLIC_DIR . "pages" . DIRECTORY_SEPARATOR;
+const PRJ_PAGES_DIR = PRJ_PUBLIC_DIR . "pages" . DIRECTORY_SEPARATOR;
+
+/**
+ * @const
+ */
+define("REQUEST_HOSTNAME", ($_SERVER["HTTP_HOST"] ?? "localhost"));
+define("REQUEST_METHOD", $_SERVER["REQUEST_METHOD"] ?? "GET");
+define("REQUEST_URI", $_SERVER["REQUEST_URI"] ?? "/");
+define("REQUEST_PATH", explode("?", REQUEST_URI)[0]);
 
 // </editor-fold>
 
@@ -86,31 +100,33 @@ const PRJ_PAGES_DIRE = PRJ_PUBLIC_DIR . "pages" . DIRECTORY_SEPARATOR;
  * Example: 'localhost/<rootDirectory>'
  * @const
  */
-define("WEB_ROOT_DIR",
-       $_SERVER["HTTP_HOST"] . WEB_DIRECTORY_SEPARATOR . "420DW3_07278_Project" . WEB_DIRECTORY_SEPARATOR);
+const WEB_ROOT_DIR = WEB_DIRECTORY_SEPARATOR . "420DW3_07278_Project" . WEB_DIRECTORY_SEPARATOR; // REQUEST_HOSTNAME . WEB_DIRECTORY_SEPARATOR . "420DW3_07278_Project" . WEB_DIRECTORY_SEPARATOR;
+
+const WEB_PUBLIC_DIR = WEB_ROOT_DIR . "public" . WEB_DIRECTORY_SEPARATOR;
 
 /**
  * Web path to the public 'css' directory.
  * @const
  */
-const WEB_CSS_DIR = WEB_ROOT_DIR . "css" . WEB_DIRECTORY_SEPARATOR;
+const WEB_CSS_DIR = WEB_PUBLIC_DIR . "css" . WEB_DIRECTORY_SEPARATOR;
 
 /**
  * Web path to the public 'js' directory.
  * @const
  */
-const WEB_JS_DIR = WEB_ROOT_DIR . "js" . WEB_DIRECTORY_SEPARATOR;
+const WEB_JS_DIR = WEB_PUBLIC_DIR . "js" . WEB_DIRECTORY_SEPARATOR;
 
 /**
  * Web path to the public 'pages' directory.
  * @const
  */
-const WEB_PAGES_DIR = WEB_ROOT_DIR . "pages" . WEB_DIRECTORY_SEPARATOR;
+const WEB_PAGES_DIR = WEB_PUBLIC_DIR . "pages" . WEB_DIRECTORY_SEPARATOR;
 
 /**
  * Web path to the public 'images' directory.
  * @const
  */
-const WEB_IMAGES_DIR = WEB_ROOT_DIR . "images" . WEB_DIRECTORY_SEPARATOR;
+const WEB_IMAGES_DIR = WEB_PUBLIC_DIR . "images" . WEB_DIRECTORY_SEPARATOR;
 
 // </editor-fold>
+?>

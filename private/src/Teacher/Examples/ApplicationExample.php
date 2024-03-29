@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Teacher\Examples;
 
 use Teacher\GivenCode\Exceptions\RequestException;
-use Teacher\GivenCode\Services\APIRouter;
+use Teacher\GivenCode\Services\InternalRouter;
 
 /**
  * TODO: Class documentation
@@ -21,10 +21,10 @@ use Teacher\GivenCode\Services\APIRouter;
  * @since  2024-03-14
  */
 class ApplicationExample {
-    private APIRouter $router;
+    private InternalRouter $router;
     
     public function __construct() {
-        $this->router = new APIRouter();
+        $this->router = new InternalRouter();
     }
     
     /**
@@ -38,15 +38,16 @@ class ApplicationExample {
     public function run() : void {
         try {
             $this->router->route();
-        } catch (RequestException $reqExep) {
-            foreach ($reqExep->getHttpHeaders() as $headerName => $headerValue) {
-                header($headerName . ": " . $headerValue);
+        } catch (RequestException $request_exep) {
+            foreach ($request_exep->getHttpHeaders() as $header_name => $header_value) {
+                header($header_name . ": " . $header_value);
             }
-            http_response_code($reqExep->getHttpResponseCode());
+            \Debug::logException($request_exep);
+            http_response_code($request_exep->getHttpResponseCode());
             die();
-        } catch (\Exception $otherException) {
+        } catch (\Exception $other_exception) {
+            \Debug::logException($other_exception);
             http_response_code(500);
-            echo '<span style="color: red;">' . generate_exception_html($otherException) . '</span>';
             die();
         }
     }
