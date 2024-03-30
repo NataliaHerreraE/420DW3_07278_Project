@@ -72,12 +72,24 @@ class UserDao implements IDAO {
         if (!($dto instanceof User)) {
             throw new RuntimeException("Passed object is not an instance of User.");
         }
-        $dto->validateForDbCreation();
+//        $dto->validateForDbCreation();
+//        $connection = DBConnectionService::getConnection();
+//        $statement = $connection->prepare(self::CREATE_QUERY);
+//        $statement->bindValue(":username", $dto->getUsername(), PDO::PARAM_STR);
+//        $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
+//        $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
+//        $statement->execute();
+        
+        // Hash the password before inserting it into the database, using Blowfish algorithm as requested.
+        $hashed_password = password_hash($dto->getPassword(), PASSWORD_BCRYPT);
+        $dto->setPassword($hashed_password); // Update DTO with hashed password
         
         $connection = DBConnectionService::getConnection();
         $statement = $connection->prepare(self::CREATE_QUERY);
+        
+        // Bind the hashed password instead of plain text
         $statement->bindValue(":username", $dto->getUsername(), PDO::PARAM_STR);
-        $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
+        $statement->bindValue(":password", $hashed_password, PDO::PARAM_STR);
         $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
         $statement->execute();
         
@@ -130,6 +142,7 @@ class UserDao implements IDAO {
     /**
      * {@inheritDoc}
      * Deletes the record of a certain DTO entity in the database.
+     * Soft deletes the record of a User entity in the database.
      *
      * @param AbstractDTO $dto The {@see AbstractDTO} instance to delete the record of.
      * @return void
@@ -147,14 +160,17 @@ class UserDao implements IDAO {
         $connection = DBConnectionService::getConnection();
         
         if ($realDeletes) {
+            // Hard delete - directly remove the user record from the database
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
+            // Soft delete - set is_deleted to true
             $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME . "` SET `is_deleted` = TRUE WHERE `user_id` = :user_id;");
         }
         
         $statement->bindValue(":user_id", $dto->getId(), PDO::PARAM_INT);
         $statement->execute();
         
+        // For hard deletes, check if the user has indeed been deleted
         if ($realDeletes) {
             $deleted_user = $this->getById($dto->getId());
             if ($deleted_user !== null) {
@@ -179,8 +195,10 @@ class UserDao implements IDAO {
         $connection = DBConnectionService::getConnection();
         
         if ($realDeletes) {
+            // Hard delete - directly remove the user record from the database
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
+            // Soft delete - set is_deleted to true
             $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME . "` SET `is_deleted` = TRUE WHERE `user_id` = :id;");
         }
         
@@ -194,6 +212,40 @@ class UserDao implements IDAO {
                 // If the user can still be found, the deletion didn't work as expected.
                 throw new RuntimeException("Failed to delete the user. User ID: " . $id);
             }
+        }
+    }
+    
+    /**
+     * TODO: Function documentation getAll
+     *
+     * @param bool $includeDeleted
+     * @return array
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-29
+     */
+    public function getAll(bool $includeDeleted = false) : array {
+        $connection = DBConnectionService::getConnection();
+        try {
+            if ($includeDeleted) {
+                $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . ";");
+            } else {
+                $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE 'is_deleted' = FALSE;");
+            }
+            $statement->execute();
+            $results_array = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $object_array = [];
+            foreach ($results_array as $result) {
+                $object_array[] = User::fromDbArray($result);
+            }
+            return $object_array;
+        } catch (\PDOException $excep) {
+            // Handle database exceptions
+            throw new RuntimeException("Database error: " . $excep->getMessage());
+        } catch (\Exception $excep) {
+            // Handle exceptions
+            throw new RuntimeException("Error: " . $excep->getMessage());
         }
     }
 }

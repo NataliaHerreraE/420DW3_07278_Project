@@ -190,4 +190,37 @@ class UserGroupDao implements IDAO {
             }
         }
     }
+    
+    /**
+     * TODO: Function documentation getAll
+     *
+     * @param bool $includeDeleted
+     * @return array
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-29
+     */
+    public function getAll(bool $includeDeleted = false) : array {
+        $connection = DBConnectionService::getConnection();
+        try {
+            if ($includeDeleted) {
+                $statement = $connection->prepare("SELECT * FROM " . UserGroup::TABLE_NAME . ";");
+            } else {
+                $statement = $connection->prepare("SELECT * FROM " . UserGroup::TABLE_NAME . " WHERE 'is_deleted' = FALSE;");
+            }
+            $statement->execute();
+            $results_array = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $object_array = [];
+            foreach ($results_array as $result) {
+                $object_array[] = UserGroup::fromDbArray($result);
+            }
+            return $object_array;
+        } catch (\PDOException $excep) {
+            throw new RuntimeException("Database error: " . $excep->getMessage());
+        } catch (\Exception $excep) {
+            throw new RuntimeException("Error: " . $excep->getMessage());
+        }
+    }
+    
 }

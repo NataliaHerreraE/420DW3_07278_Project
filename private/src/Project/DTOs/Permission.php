@@ -36,7 +36,7 @@ class Permission extends AbstractDTO {
     private ?DateTime $createdAt;
     private ?DateTime $updatedAt;
     
-    protected function __construct() {
+    public function __construct() {
         parent::__construct();
     }
     

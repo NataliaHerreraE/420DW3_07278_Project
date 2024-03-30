@@ -33,7 +33,7 @@ class UserGroup extends AbstractDTO {
     private ?DateTime $updatedAt;
     private bool $isDeleted;
     
-    protected function __construct() {
+    public function __construct() {
         parent::__construct();
     }
     
