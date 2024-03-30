@@ -72,31 +72,17 @@ class UserDao implements IDAO {
         if (!($dto instanceof User)) {
             throw new RuntimeException("Passed object is not an instance of User.");
         }
-//        $dto->validateForDbCreation();
-//        $connection = DBConnectionService::getConnection();
-//        $statement = $connection->prepare(self::CREATE_QUERY);
-//        $statement->bindValue(":username", $dto->getUsername(), PDO::PARAM_STR);
-//        $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
-//        $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
-//        $statement->execute();
-        
-        // Hash the password before inserting it into the database, using Blowfish algorithm as requested.
-        $hashed_password = password_hash($dto->getPassword(), PASSWORD_BCRYPT);
-        $dto->setPassword($hashed_password); // Update DTO with hashed password
-        
+        $dto->validateForDbCreation();
         $connection = DBConnectionService::getConnection();
         $statement = $connection->prepare(self::CREATE_QUERY);
-        
-        // Bind the hashed password instead of plain text
         $statement->bindValue(":username", $dto->getUsername(), PDO::PARAM_STR);
-        $statement->bindValue(":password", $hashed_password, PDO::PARAM_STR);
+        $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
         $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
         $statement->execute();
         
         $new_id = (int) $connection->lastInsertId();
         $new_user = $this->getById($new_id);
         if ($new_user === null) {
-            // Handle the unexpected case where the user could not be retrieved after insertion.
             throw new RuntimeException("Unable to retrieve the user after creation. User ID: {$new_id}");
         }
         

@@ -46,6 +46,14 @@ class ExampleController extends AbstractController {
         ob_end_flush();
     }
     
+    /**
+     * TODO: Function documentation post
+     *
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-03-30
+     */
     public function post() : void {
         // TODO: HTTP POST handling
     }
