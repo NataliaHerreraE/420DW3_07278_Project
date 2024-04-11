@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Teacher\Examples\DTOs;
 
 use DateTime;
-use JetBrains\PhpStorm\Pure;
 use Teacher\Examples\Enumerations\DaysOfWeekEnum;
 use Teacher\GivenCode\Abstracts\AbstractDTO;
 use Teacher\GivenCode\Exceptions\ValidationException;
@@ -29,15 +28,15 @@ class ExampleDTO extends AbstractDTO {
      * Database table name for this DTO.
      * @const
      */
-    public const TABLE_NAME = "ExampleEntity";
+    public const TABLE_NAME = "examples";
     private const DESCRIPTION_MAX_LENGTH = 256;
     
     
     private DaysOfWeekEnum $dayOfTheWeek;
     private string $description;
-    private ?DateTime $creationDate;
-    private ?DateTime $lastModificationDate;
-    private ?DateTime $deletionDate;
+    private ?DateTime $creationDate = null;
+    private ?DateTime $lastModificationDate = null;
+    private ?DateTime $deletionDate = null;
     
     
     // <editor-fold defaultstate="collapsed" desc="CONSTRUCTORS">
@@ -300,7 +299,7 @@ class ExampleDTO extends AbstractDTO {
      */
     public function validateForDbUpdate(bool $optThrowExceptions = true) : bool {
         // ID is required
-        if (!empty($this->id)) {
+        if (empty($this->id)) {
             if ($optThrowExceptions) {
                 throw new ValidationException("ExampleDTO is not valid for DB creation: ID value is not set.");
             }
@@ -335,7 +334,7 @@ class ExampleDTO extends AbstractDTO {
      */
     public function validateForDbDelete(bool $optThrowExceptions = true) : bool {
         // ID is required
-        if (!empty($this->id)) {
+        if (empty($this->id)) {
             if ($optThrowExceptions) {
                 throw new ValidationException("ExampleDTO is not valid for DB creation: ID value is not set.");
             }
@@ -345,6 +344,7 @@ class ExampleDTO extends AbstractDTO {
     }
     
     // </editor-fold>
+    
     
     /**
      * TODO: Function documentation
