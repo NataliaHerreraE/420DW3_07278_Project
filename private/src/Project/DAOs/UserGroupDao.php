@@ -223,4 +223,86 @@ class UserGroupDao implements IDAO {
         }
     }
     
+    // Associates a user with a user group
+    
+    /***
+     * TODO: Function documentation addUserToGroup
+     *
+     * @param int $userId
+     * @param int $groupId
+     * @return void
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function addUserToGroup(int $userId, int $groupId): void {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
+        $statement->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $statement->bindParam(':group_id', $groupId, PDO::PARAM_INT);
+        $statement->execute();
+    }
+    
+    // Removes a user from a user group
+    
+    /***
+     * TODO: Function documentation removeUserFromGroup
+     *
+     * @param int $userId
+     * @param int $groupId
+     * @return void
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function removeUserFromGroup(int $userId, int $groupId): void {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
+        $statement->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $statement->bindParam(':group_id', $groupId, PDO::PARAM_INT);
+        $statement->execute();
+    }
+    
+    // Retrieves all user groups a user belongs to
+    
+    /***
+     * TODO: Function documentation getUserGroups
+     *
+     * @param int $userId
+     * @return array
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function getUserGroups(int $userId): array {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare("SELECT ug.* FROM UserGroups ug
+                                           INNER JOIN User_UserGroup uug ON ug.group_id = uug.user_group_id
+                                           WHERE uug.user_id = :user_id");
+        $statement->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $statement->execute();
+        return $statement->fetchAll(PDO::FETCH_ASSOC); // Convert to UserGroup DTOs as needed CHECK LATER
+    }
+    
+    /***
+     * TODO: Function documentation getPermissionsByGroupId
+     *
+     * @param int $groupId
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function getPermissionsByGroupId(int $groupId): array {
+        $query = "SELECT p.permission_key FROM permissions p JOIN user_group_permissions ugp ON p.id = ugp.permission_id WHERE ugp.group_id = :groupId";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bindParam(':groupId', $groupId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
+    
 }

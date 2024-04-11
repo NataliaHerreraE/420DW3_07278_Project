@@ -227,4 +227,95 @@ class UserController extends AbstractController {
         return ['success' => true, 'message' => 'Validation successful.'];
     }
     
+    /***
+     * TODO: Function documentation addUserToGroup
+     * @return void
+     *
+     * @throws RequestException
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function addUserToGroup(): void {
+        ob_start();
+        $data = $_REQUEST;
+        
+        if (empty($data['userId']) || empty($data['groupId'])) {
+            throw new RequestException("User ID and Group ID are required.", 400);
+        }
+        
+        try {
+            $this->userService->addUserToGroup((int)$data['userId'], (int)$data['groupId']);
+            header("Content-Type: application/json;charset=UTF-8");
+            echo json_encode(['message' => 'User added to group successfully']);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        
+        ob_end_flush();
+    }
+    
+    /***
+     * TODO: Function documentation removeUserFromGroup
+     * @return void
+     *
+     * @throws RequestException
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function removeUserFromGroup(): void {
+        ob_start();
+        $data = $_REQUEST;
+        
+        if (empty($data['userId']) || empty($data['groupId'])) {
+            throw new RequestException("User ID and Group ID are required.", 400);
+        }
+        
+        try {
+            $this->userService->removeUserFromGroup((int)$data['userId'], (int)$data['groupId']);
+            header("Content-Type: application/json;charset=UTF-8");
+            echo json_encode(['message' => 'User removed from group successfully']);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        
+        ob_end_flush();
+    }
+    
+    /***
+     * TODO: Function documentation login
+     * @return void
+     *
+     * @throws RequestException
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function login(): void {
+        //$username and $password are obtained from the request
+        $username = $_REQUEST['username'];
+        $password = $_REQUEST['password'];
+        
+        try {
+            $userId = $this->userService->authenticate($username, $password);
+            if ($userId) {
+                $permissions = $this->userService->getUserPermissions($userId);
+                $_SESSION['permissions'] = $permissions;
+                echo json_encode(['message' => 'Login successful']);
+            } else {
+                throw new RequestException("Authentication failed.", 401);
+            }
+        } catch (Exception $e) {
+            http_response_code($e->getCode() ?: 500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+    
+    
 }

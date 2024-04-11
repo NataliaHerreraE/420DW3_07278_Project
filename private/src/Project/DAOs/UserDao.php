@@ -234,4 +234,95 @@ class UserDao implements IDAO {
             throw new RuntimeException("Error: " . $excep->getMessage());
         }
     }
+    
+    // Adds a user to a user group
+    
+    /***
+     * TODO: Function documentation addToGroup
+     *
+     * @param int $userId
+     * @param int $groupId
+     * @return void
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function addToGroup(int $userId, int $groupId): void {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
+        $statement->bindParam(':user_id', $userId);
+        $statement->bindParam(':group_id', $groupId);
+        $statement->execute();
+    }
+    
+    // Removes a user from a user group
+    
+    /***
+     * TODO: Function documentation removeFromGroup
+     *
+     * @param int $userId
+     * @param int $groupId
+     * @return void
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function removeFromGroup(int $userId, int $groupId): void {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
+        $statement->bindParam(':user_id', $userId);
+        $statement->bindParam(':group_id', $groupId);
+        $statement->execute();
+    }
+    
+    /***
+     * TODO: Function documentation getUserGroups
+     *
+     * @param int $userId
+     * @return array
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    // Retrieves all groups that a user belongs to
+    public function getUserGroups(int $userId): array {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare(
+            "SELECT g.* FROM UserGroups g
+             INNER JOIN User_UserGroup uug ON g.group_id = uug.user_group_id
+             WHERE uug.user_id = :user_id"
+        );
+        $statement->bindParam(':user_id', $userId);
+        $statement->execute();
+        return $statement->fetchAll(PDO::FETCH_ASSOC); // or fetch into UserGroup DTOs check later
+    }
+    
+    /***
+     * TODO: Function documentation getByUsername
+     *
+     * @param string $username
+     * @return User|null
+     * @throws RuntimeException
+     * @throws \Teacher\GivenCode\Exceptions\ValidationException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function getByUsername(string $username): ?User {
+        $connection = DBConnectionService::getConnection();
+        $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE username = :username LIMIT 1;");
+        $statement->bindValue(":username", $username, PDO::PARAM_STR);
+        $statement->execute();
+        
+        $userData = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($userData) {
+            return User::fromDbArray($userData);
+        } else {
+            return null;
+        }
+    }
+    
 }

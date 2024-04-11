@@ -12,10 +12,15 @@ namespace Project\DAOs;
 
 use PDO;
 use Project\DTOs\Permission;
+use Teacher\GivenCode\Abstracts\AbstractDTO;
 use Teacher\GivenCode\Abstracts\IDAO;
 use Teacher\GivenCode\Exceptions\RuntimeException;
+use Teacher\GivenCode\Exceptions\ValidationException;
 use Teacher\GivenCode\Services\DBConnectionService;
 
+/**
+ *
+ */
 class PermissionDao implements IDAO {
     
     private const GET_QUERY = "SELECT * FROM `" . Permission::TABLE_NAME . "` WHERE `permission_id` = :permission_id;";
@@ -24,6 +29,7 @@ class PermissionDao implements IDAO {
     private const UPDATE_QUERY = "UPDATE `" . Permission::TABLE_NAME .
     "` SET `permission_key` = :permission_key, `name` = :name, `description` = :description WHERE `permission_id` = :permission_id;";
     private const DELETE_QUERY = "DELETE FROM `" . Permission::TABLE_NAME . "` WHERE `permission_id` = :permission_id;";
+    private $connection;
     
     public function __construct() {}
     
@@ -113,10 +119,12 @@ class PermissionDao implements IDAO {
     /**
      * Deletes the record of a certain DTO entity in the database.
      *
-     * @param AbstractDTO $dto The {@see AbstractDTO} instance to delete the record of.
+     * @param object $dto The {@see AbstractDTO} instance to delete the record of.
+     * @param bool   $realDeletes
      * @return void
      *
      * @throws RuntimeException
+     * @throws ValidationException
      * @author Marc-Eric Boury
      * @since  2024-03-17
      */
@@ -181,5 +189,25 @@ class PermissionDao implements IDAO {
             throw new RuntimeException("Error: " . $excep->getMessage());
         }
     }
+    
+    /***
+     * TODO: Function documentation getUserPermissions
+     *
+     * @param int $userId
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function getUserPermissions(int $userId): array {
+        $query = "SELECT permission_key FROM permissions
+              JOIN user_permissions ON permissions.permission_id = user_permissions.permission_id
+              WHERE user_permissions.user_id = :userId";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
     
 }
