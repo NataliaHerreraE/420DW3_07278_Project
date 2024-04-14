@@ -15,6 +15,7 @@ use Project\DTOs\User;
 use Teacher\GivenCode\Abstracts\AbstractDTO;
 use Teacher\GivenCode\Abstracts\IDAO;
 use Teacher\GivenCode\Exceptions\RuntimeException;
+use Teacher\GivenCode\Exceptions\ValidationException;
 use Teacher\GivenCode\Services\DBConnectionService;
 
 /**
@@ -150,7 +151,8 @@ class UserDao implements IDAO {
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
             // Soft delete - set is_deleted to true
-            $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME . "` SET `is_deleted` = TRUE WHERE `user_id` = :user_id;");
+            $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME .
+                                              "` SET `is_deleted` = TRUE WHERE `user_id` = :user_id;");
         }
         
         $statement->bindValue(":user_id", $dto->getId(), PDO::PARAM_INT);
@@ -185,7 +187,8 @@ class UserDao implements IDAO {
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
             // Soft delete - set is_deleted to true
-            $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME . "` SET `is_deleted` = TRUE WHERE `user_id` = :id;");
+            $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME .
+                                              "` SET `is_deleted` = TRUE WHERE `user_id` = :id;");
         }
         
         $statement->bindValue(":id", $id, PDO::PARAM_INT);
@@ -248,9 +251,10 @@ class UserDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function addToGroup(int $userId, int $groupId): void {
+    public function addToGroup(int $userId, int $groupId) : void {
         $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
+        $statement =
+            $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
         $statement->bindParam(':user_id', $userId);
         $statement->bindParam(':group_id', $groupId);
         $statement->execute();
@@ -269,9 +273,10 @@ class UserDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function removeFromGroup(int $userId, int $groupId): void {
+    public function removeFromGroup(int $userId, int $groupId) : void {
         $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
+        $statement =
+            $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
         $statement->bindParam(':user_id', $userId);
         $statement->bindParam(':group_id', $groupId);
         $statement->execute();
@@ -288,7 +293,7 @@ class UserDao implements IDAO {
      * @since  2024-04-11
      */
     // Retrieves all groups that a user belongs to
-    public function getUserGroups(int $userId): array {
+    public function getUserGroups(int $userId) : array {
         $connection = DBConnectionService::getConnection();
         $statement = $connection->prepare(
             "SELECT g.* FROM UserGroups g
@@ -306,20 +311,20 @@ class UserDao implements IDAO {
      * @param string $username
      * @return User|null
      * @throws RuntimeException
-     * @throws \Teacher\GivenCode\Exceptions\ValidationException
+     * @throws ValidationException
      *
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function getByUsername(string $username): ?User {
+    public function getByUsername(string $username) : ?User {
         $connection = DBConnectionService::getConnection();
         $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE username = :username LIMIT 1;");
         $statement->bindValue(":username", $username, PDO::PARAM_STR);
         $statement->execute();
         
-        $userData = $statement->fetch(PDO::FETCH_ASSOC);
-        if ($userData) {
-            return User::fromDbArray($userData);
+        $user_data = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($user_data) {
+            return User::fromDbArray($user_data);
         } else {
             return null;
         }

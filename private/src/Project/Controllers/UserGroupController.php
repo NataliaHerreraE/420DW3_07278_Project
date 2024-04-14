@@ -68,33 +68,34 @@ class UserGroupController extends AbstractController {
      */
     public function post() : void {
         ob_start();
-        
-        // Meant to retrieve the data from the form
         $data = $_REQUEST;
         
-        // Validate the input data
         if (!$this->validateUserGroupData($data)) {
             throw new RequestException("Bad request: Missing or invalid fields.", 400);
         }
         
-        // Call UserGroupService to create the user group
+        // Check if group name already exists
+        if ($this->userGroupService->isGroupNameTaken($data['groupName'])) {
+            throw new RequestException("The group name is already taken.", 409);
+        }
+        
         try {
             $created_group = $this->userGroupService->createUserGroup($data['groupName'], $data['description']);
+            header("Content-Type: application/json;charset=UTF-8");
+            http_response_code(201); // 201 Created
+            echo json_encode([
+                                 'message' => 'User group created successfully',
+                                 'groupId' => $created_group->getId()
+                             ]);
         } catch (ValidationException $exception) {
             throw new RequestException("Validation error: " . $exception->getMessage(), 422);
         } catch (RuntimeException $exception) {
             throw new RequestException("Server error: " . $exception->getMessage(), 500);
         }
         
-        // Respond with the user group
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode([
-                             'message' => 'User group created successfully',
-                             'groupId' => $created_group->getId()
-                         ]);
-        
         ob_end_flush();
     }
+    
     
     /**
      * TODO: Function documentation put
@@ -102,14 +103,13 @@ class UserGroupController extends AbstractController {
      * @return void
      *
      * @throws RequestException
+     * @throws RuntimeException
      *
      * @author Natalia Herrera.
      * @since  2024-03-30
      */
     public function put() : void {
         ob_start();
-        
-        // Retrieve data from the form submission
         $data = $_REQUEST;
         
         if (empty($data['userGroupId'])) {
@@ -117,31 +117,34 @@ class UserGroupController extends AbstractController {
         }
         
         $userGroupId = (int) $data['userGroupId'];
+        $currentGroupData = $this->userGroupService->getUserGroupById($userGroupId);
+        
+        if ($this->userGroupService->isGroupNameTaken($data['groupName'], $userGroupId)) {
+            throw new RequestException("The group name is already taken.", 409);
+        }
         
         $validationResult = $this->validateUserGroupData($data);
         if (!$validationResult['success']) {
             throw new RequestException($validationResult['message'], 400);
         }
         
-        // Call UserGroupService to update the user group
         try {
             $updatedGroup =
                 $this->userGroupService->updateUserGroup($userGroupId, $data['groupName'], $data['description'] ?? '');
+            header("Content-Type: application/json;charset=UTF-8");
+            echo json_encode([
+                                 'message' => 'User group updated successfully',
+                                 'userGroupId' => $updatedGroup->getId()
+                             ]);
         } catch (ValidationException $exception) {
             throw new RequestException("Validation error: " . $exception->getMessage(), 422);
         } catch (RuntimeException $exception) {
             throw new RequestException("Server error: " . $exception->getMessage(), 500);
         }
         
-        // Respond with the updated user group data
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode([
-                             'message' => 'User group updated successfully',
-                             'userGroupId' => $updatedGroup->getId()
-                         ]);
-        
         ob_end_flush();
     }
+    
     
     /**
      * TODO: Function documentation delete
@@ -174,9 +177,9 @@ class UserGroupController extends AbstractController {
             }
             
             // Determine whether it's a hard or soft delete
-            $hardDelete = false; //
+            $hard_delete = false; //
             // Perform the deletion
-            $this->userGroupService->deleteUserGroup($userGroupId, $hardDelete);
+            $this->userGroupService->deleteUserGroup($userGroupId, $hard_delete);
             
             // Respond with a success message
             header("Content-Type: application/json;charset=UTF-8");

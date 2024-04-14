@@ -28,8 +28,14 @@ class UserGroupDao implements IDAO {
     private const UPDATE_QUERY = "UPDATE `" . UserGroup::TABLE_NAME .
     "` SET `group_name` = :group_name, `description` = :description WHERE `group_id` = :group_id;";
     private const DELETE_QUERY = "DELETE FROM `" . UserGroup::TABLE_NAME . "` WHERE `group_id` = :group_id;";
+    private PDO $connection;
     
-    public function __construct() {}
+    /**
+     * @param PDO $connection
+     */
+    public function __construct(PDO $connection) {
+        $this->connection = $connection;
+    }
     
     /**
      * {@inheritDoc}
@@ -144,7 +150,8 @@ class UserGroupDao implements IDAO {
         if ($realDeletes) {
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
-            $statement = $connection->prepare("UPDATE `" . UserGroup::TABLE_NAME . "` SET `is_deleted` = TRUE WHERE `group_id` = :group_id;");
+            $statement = $connection->prepare("UPDATE `" . UserGroup::TABLE_NAME .
+                                              "` SET `is_deleted` = TRUE WHERE `group_id` = :group_id;");
         }
         
         $statement->bindValue(":group_id", $dto->getId(), PDO::PARAM_INT);
@@ -175,7 +182,8 @@ class UserGroupDao implements IDAO {
         if ($realDeletes) {
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
-            $statement = $connection->prepare("UPDATE `" . UserGroup::TABLE_NAME . "` SET `is_deleted` = TRUE WHERE `group_id` = :id;");
+            $statement = $connection->prepare("UPDATE `" . UserGroup::TABLE_NAME .
+                                              "` SET `is_deleted` = TRUE WHERE `group_id` = :id;");
         }
         
         $statement->bindValue(":id", $id, PDO::PARAM_INT);
@@ -194,8 +202,6 @@ class UserGroupDao implements IDAO {
     /**
      * TODO: Function documentation getAll
      *
-     * @param bool $includeDeleted
-     * @return array
      * @throws RuntimeException
      *
      * @author Natalia Herrera.
@@ -207,7 +213,8 @@ class UserGroupDao implements IDAO {
             if ($includeDeleted) {
                 $statement = $connection->prepare("SELECT * FROM " . UserGroup::TABLE_NAME . ";");
             } else {
-                $statement = $connection->prepare("SELECT * FROM " . UserGroup::TABLE_NAME . " WHERE 'is_deleted' = FALSE;");
+                $statement =
+                    $connection->prepare("SELECT * FROM " . UserGroup::TABLE_NAME . " WHERE 'is_deleted' = FALSE;");
             }
             $statement->execute();
             $results_array = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -236,9 +243,10 @@ class UserGroupDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function addUserToGroup(int $userId, int $groupId): void {
+    public function addUserToGroup(int $userId, int $groupId) : void {
         $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
+        $statement =
+            $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
         $statement->bindParam(':user_id', $userId, PDO::PARAM_INT);
         $statement->bindParam(':group_id', $groupId, PDO::PARAM_INT);
         $statement->execute();
@@ -257,9 +265,10 @@ class UserGroupDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function removeUserFromGroup(int $userId, int $groupId): void {
+    public function removeUserFromGroup(int $userId, int $groupId) : void {
         $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
+        $statement =
+            $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
         $statement->bindParam(':user_id', $userId, PDO::PARAM_INT);
         $statement->bindParam(':group_id', $groupId, PDO::PARAM_INT);
         $statement->execute();
@@ -277,7 +286,7 @@ class UserGroupDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function getUserGroups(int $userId): array {
+    public function getUserGroups(int $userId) : array {
         $connection = DBConnectionService::getConnection();
         $statement = $connection->prepare("SELECT ug.* FROM UserGroups ug
                                            INNER JOIN User_UserGroup uug ON ug.group_id = uug.user_group_id
@@ -296,12 +305,43 @@ class UserGroupDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function getPermissionsByGroupId(int $groupId): array {
-        $query = "SELECT p.permission_key FROM permissions p JOIN user_group_permissions ugp ON p.id = ugp.permission_id WHERE ugp.group_id = :groupId";
+    public function getPermissionsByGroupId(int $groupId) : array {
+        $query =
+            "SELECT p.permission_key FROM permissions p JOIN user_group_permissions ugp ON p.permission_id = ugp.permission_id WHERE ugp.user_group_id = :groupId";
         $stmt = $this->connection->prepare($query);
         $stmt->bindParam(':groupId', $groupId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
+    
+    /**
+     * TODO: Function documentation isGroupNameTaken
+     *
+     * @param string   $groupName
+     * @param int|null $excludeGroupId
+     * @return bool
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function isGroupNameTaken(string $groupName, int $excludeGroupId = null) : bool {
+        $query = "SELECT COUNT(*) FROM UserGroups WHERE group_name = :groupName";
+        $params = ['groupName' => $groupName];
+        
+        if ($excludeGroupId !== null) {
+            $query .= " AND group_id != :excludeGroupId";
+            $params['excludeGroupId'] = $excludeGroupId;
+        }
+        
+        $stmt = $this->connection->prepare($query);
+        foreach ($params as $key => &$val) {
+            $stmt->bindParam($key, $val);
+        }
+        $stmt->execute();
+        $count = $stmt->fetchColumn();
+        
+        return $count > 0;
     }
     
     

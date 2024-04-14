@@ -75,32 +75,35 @@ class UserService implements IService {
     public function createUser(string $username, string $password, string $email) : User {
         $user = new User();
         $user->setUsername($username);
-        $user->setPassword($password); // Ensure password is hashed
+        $user->setPassword(password_hash($password, PASSWORD_BCRYPT)); // Hashing the password
         $user->setEmail($email);
         return $this->userDao->create($user);
     }
     
+    
     /**
      * TODO: Function documentation updateUser
      *
-     * @param int    $id
-     * @param string $username
-     * @param string $password
-     * @param string $email
+     * @param int         $id
+     * @param string      $username
+     * @param string|null $password
+     * @param string      $email
      * @return User
      * @throws RuntimeException
      * @throws ValidationException
-     *
      * @author Natalia Herrera.
      * @since  2024-03-29
      */
-    public function updateUser(int $id, string $username, string $password, string $email) : User {
+    public function updateUser(int $id, string $username, string $password = null, string $email) : User {
         $user = $this->userDao->getById($id);
         $user->setUsername($username);
-        $user->setPassword($password); // Ensure password is hashed
+        if ($password !== null) {
+            $user->setPassword(password_hash($password, PASSWORD_BCRYPT)); // Hashing the new password
+        }
         $user->setEmail($email);
         return $this->userDao->update($user);
     }
+    
     
     /**
      * TODO: Function documentation deleteUser
@@ -159,7 +162,7 @@ class UserService implements IService {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function getUserGroups(int $userId): array {
+    public function getUserGroups(int $userId) : array {
         // Call the DAO method to get user groups
         return $this->userDao->getUserGroups($userId);
     }
@@ -174,21 +177,21 @@ class UserService implements IService {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function getUserPermissions(int $userId): array {
+    public function getUserPermissions(int $userId) : array {
         // Get individual user permissions
-        $userPermissions = $this->permissionDao->getUserPermissions($userId);
+        $user_permissions = $this->permissionDao->getUserPermissions($userId);
         
         // Get user group permissions
         $groups = $this->getUserGroups($userId);
-        $groupPermissions = [];
+        $group_permissions = [];
         foreach ($groups as $group) {
-            $groupPermissions = array_merge($groupPermissions,
-                                            $this->userGroupDao->getPermissionsByGroupId($group['group_id'])); // Define this method in UserGroupDAO
+            $group_permissions = array_merge($group_permissions,
+                                             $this->userGroupDao->getPermissionsByGroupId($group['group_id']));
         }
         
         // Merge individual user permissions with group permissions
-        $mergedPermissions = array_unique(array_merge($userPermissions, $groupPermissions));
-        return $mergedPermissions;
+        $merged_permissions = array_unique(array_merge($user_permissions, $group_permissions));
+        return $merged_permissions;
     }
     
     /***
@@ -201,11 +204,11 @@ class UserService implements IService {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function authenticate(string $username, string $password): ?int {
+    public function authenticate(string $username, string $password) : ?int {
         // Get the user by username
         try {
             $user = $this->userDao->getByUsername($username);
-        } catch (ValidationException|RuntimeException $e) {
+        } catch (ValidationException|RuntimeException $exception) {
             return null;
         }
         if (!$user) {

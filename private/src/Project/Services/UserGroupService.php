@@ -109,6 +109,21 @@ class UserGroupService implements IService {
         $this->userGroupDao->deleteById($id, $hardDelete);
     }
     
+    /**
+     * TODO: Function documentation isGroupNameTaken
+     *
+     * @param string   $groupName
+     * @param int|null $excludeGroupId
+     * @return bool
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-11
+     */
+    public function isGroupNameTaken(string $groupName, int $excludeGroupId = null): bool {
+        return $this->userGroupDao->isGroupNameTaken($groupName, $excludeGroupId);
+    }
+    
+    
     //resume for me:(same for user and permission)
     //getAllUserGroups() retrieves all user groups, option to include is_deleted groups.
     //getUserGroupById() fetchs a specific user group by ID.

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Project\Controllers;
 
+use Exception;
 use Project\Services\UserService;
 use Teacher\GivenCode\Abstracts\AbstractController;
 use Teacher\GivenCode\Exceptions\RequestException;
@@ -40,14 +41,15 @@ class UserController extends AbstractController {
      */
     public function get() : void {
         ob_start();
-        if (empty($_REQUEST["userId"])) {
-            throw new RequestException("Bad request: required parameter [userId] not found in the request.", 400);
+        if (empty($_REQUEST["user_id"])) {
+            throw new RequestException("Bad request: required parameter [user_id] not found in the request.", 400);
         }
-        if (!is_numeric($_REQUEST["userId"])) {
-            throw new RequestException("Bad request: parameter [userId] value [" . $_REQUEST["userId"] . "] is not numeric.", 400);
+        if (!is_numeric($_REQUEST["user_id"])) {
+            throw new RequestException("Bad request: parameter [user_id] value [" . $_REQUEST["user_id"] .
+                                       "] is not numeric.", 400);
         }
-        $userId = (int) $_REQUEST["userId"];
-        $user = $this->userService->getUserById($userId);
+        $user_id = (int) $_REQUEST["user_id"];
+        $user = $this->userService->getUserById($user_id);
         header("Content-Type: application/json;charset=UTF-8");
         echo json_encode($user);
         ob_end_flush();
@@ -66,37 +68,22 @@ class UserController extends AbstractController {
     public function post() : void {
         ob_start();
         
-        // Meant to retrieve the data from the form
         $data = $_REQUEST;
         
-        // Validate the input data
         if (!$this->validateUserData($data)) {
             throw new RequestException("Bad request: Missing or invalid fields.", 400);
         }
         
-        // Hash the password
-        if (isset($data['password'])) {
-            $hashed_password = password_hash($data['password'], PASSWORD_BCRYPT);
-        } else {
-            // Handle error: Password not provided // not sure if this is the best way to handle this :(
-            throw new RequestException("Password is required.", 400);
-        }
-        
-        // Call UserService to create the user
         try {
-            $created_user = $this->userService->createUser($data['username'], $hashed_password, $data['email']);
+            $created_user = $this->userService->createUser($data['username'], $data['password'], $data['email']);
         } catch (ValidationException $exception) {
             throw new RequestException("Validation error: " . $exception->getMessage(), 422);
         } catch (RuntimeException $exception) {
             throw new RequestException("Server error: " . $exception->getMessage(), 500);
         }
         
-        // Respond with the user
         header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode([
-                             'message' => 'User created successfully',
-                             'userId' => $created_user->getId()
-                         ]);
+        echo json_encode(['message' => 'User created successfully', 'userId' => $created_user->getId()]);
         
         ob_end_flush();
     }
@@ -111,46 +98,31 @@ class UserController extends AbstractController {
      * @since  2024-03-30
      */
     public function put() : void {
-        // Retrieve data from the form submission
         $data = $_REQUEST;
         
-        // Assuming the user ID is passed as a hidden input field or as part of the form data
-        if (empty($data['userId'])) {
+        if (empty($data['user_id'])) {
             throw new RequestException("User ID is required for updating.", 400);
         }
         
-        $userId = (int) $data['userId'];
-        
-        // Validate the input data
         if (!$this->validateUserData($data)) {
             throw new RequestException("Bad request: Missing or invalid fields.", 400);
         }
         
-        // Hash the password if it's provided for an update
-        if (!empty($data['password'])) {
-            $hashed_password = password_hash($data['password'], PASSWORD_BCRYPT);
-        } else {
-            $hashed_password = null; // Password not changed
-        }
-        
-        // Call UserService to update the user
         try {
-            $updated_user = $this->userService->updateUser($userId, $data['username'], $hashed_password, $data['email']);
+            $updated_user = $this->userService->updateUser((int) $data['user_id'], $data['username'], $data['password'],
+                                                           $data['email']);
         } catch (ValidationException $exception) {
             throw new RequestException("Validation error: " . $exception->getMessage(), 422);
         } catch (RuntimeException $exception) {
             throw new RequestException("Server error: " . $exception->getMessage(), 500);
         }
         
-        // Respond with the updated user data
         header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode([
-                             'message' => 'User updated successfully',
-                             'userId' => $updated_user->getId()
-                         ]);
+        echo json_encode(['message' => 'User updated successfully', 'userId' => $updated_user->getId()]);
         
         ob_end_flush();
     }
+    
     
     /**
      * TODO: Function documentation delete
@@ -165,25 +137,25 @@ class UserController extends AbstractController {
         ob_start();
         
         // Retrieve the user ID from theform
-        $userId = $_REQUEST['userId'] ?? null;
+        $user_id = $_REQUEST['userId'] ?? null;
         
-        if (is_null($userId) || !is_numeric($userId)) {
+        if (is_null($user_id) || !is_numeric($user_id)) {
             throw new RequestException("Bad request: User ID is missing or invalid.", 400);
         }
         
         // Convert the user ID to an integer
-        $userId = (int) $userId;
+        $user_id = (int) $user_id;
         
         try {
             // Check if the user exists
-            $user = $this->userService->getUserById($userId);
+            $user = $this->userService->getUserById($user_id);
             if (!$user) {
                 throw new RequestException("User not found.", 404);
             }
             
             // hard or soft delete?
-            $hardDelete = false; // Set true for hard delete.... otherwise rise the flag? (maybe change it later)
-            $this->userService->deleteUser($userId, $hardDelete);
+            $hard_delete = false; // Set true for hard delete.... otherwise rise the flag? (maybe change it later)
+            $this->userService->deleteUser($user_id, $hard_delete);
             
             // If everything went well, send a success response, hopelly it does :)
             header("Content-Type: application/json;charset=UTF-8");
@@ -237,7 +209,7 @@ class UserController extends AbstractController {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function addUserToGroup(): void {
+    public function addUserToGroup() : void {
         ob_start();
         $data = $_REQUEST;
         
@@ -246,12 +218,12 @@ class UserController extends AbstractController {
         }
         
         try {
-            $this->userService->addUserToGroup((int)$data['userId'], (int)$data['groupId']);
+            $this->userService->addUserToGroup((int) $data['userId'], (int) $data['groupId']);
             header("Content-Type: application/json;charset=UTF-8");
             echo json_encode(['message' => 'User added to group successfully']);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            echo json_encode(['error' => $exception->getMessage()]);
         }
         
         ob_end_flush();
@@ -267,7 +239,7 @@ class UserController extends AbstractController {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function removeUserFromGroup(): void {
+    public function removeUserFromGroup() : void {
         ob_start();
         $data = $_REQUEST;
         
@@ -276,12 +248,12 @@ class UserController extends AbstractController {
         }
         
         try {
-            $this->userService->removeUserFromGroup((int)$data['userId'], (int)$data['groupId']);
+            $this->userService->removeUserFromGroup((int) $data['userId'], (int) $data['groupId']);
             header("Content-Type: application/json;charset=UTF-8");
             echo json_encode(['message' => 'User removed from group successfully']);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            echo json_encode(['error' => $exception->getMessage()]);
         }
         
         ob_end_flush();
@@ -291,29 +263,27 @@ class UserController extends AbstractController {
      * TODO: Function documentation login
      * @return void
      *
-     * @throws RequestException
-     * @throws RuntimeException
      *
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function login(): void {
+    public function login() : void {
         //$username and $password are obtained from the request
         $username = $_REQUEST['username'];
         $password = $_REQUEST['password'];
         
         try {
-            $userId = $this->userService->authenticate($username, $password);
-            if ($userId) {
-                $permissions = $this->userService->getUserPermissions($userId);
+            $user_id = $this->userService->authenticate($username, $password);
+            if ($user_id) {
+                $permissions = $this->userService->getUserPermissions($user_id);
                 $_SESSION['permissions'] = $permissions;
                 echo json_encode(['message' => 'Login successful']);
             } else {
                 throw new RequestException("Authentication failed.", 401);
             }
-        } catch (Exception $e) {
-            http_response_code($e->getCode() ?: 500);
-            echo json_encode(['error' => $e->getMessage()]);
+        } catch (Exception $exception) {
+            http_response_code($exception->getCode() ?: 500);
+            echo json_encode(['error' => $exception->getMessage()]);
         }
     }
     
