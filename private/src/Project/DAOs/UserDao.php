@@ -329,5 +329,4 @@ class UserDao implements IDAO {
             return null;
         }
     }
-    
 }

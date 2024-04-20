@@ -223,4 +223,21 @@ class UserService implements IService {
         // Authentication failed
         return null;
     }
+    
+    /**
+     * TODO: Function documentation getUserByUsername
+     *
+     * @param string $username
+     * @return User|null
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-14
+     */
+    public function getUserByUsername(string $username) : ?User {
+        try {
+            return $this->userDao->getByUsername($username);
+        } catch (ValidationException|RuntimeException $e) {
+            return null;
+        }
+    }
 }

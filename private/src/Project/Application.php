@@ -54,4 +54,16 @@ class Application {
         }
     }
     
+    /**
+     * TODO: Function documentation getRouter
+     *
+     * @return InternalRouter
+     *
+     * @author Natalia Herrera.
+     * @since  2024-04-14
+     */
+    public function getRouter() : InternalRouter {
+        return $this->router;
+    }
+    
 }

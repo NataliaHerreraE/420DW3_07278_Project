@@ -6,39 +6,54 @@
  * @since   2024-03-30
  * (c) Copyright 2024 Natalia Herrera.
  */
+declare(strict_types=1);
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="public/css/bootstrap.min.css">
-    <link rel="stylesheet" href="public/css/style.css">
-</head>
-<body>
-    <div class="container">
-    <form action="">
-        <h1>Login</h1>
-        <div class="input-login-box">
-            <!--Add nice image here for user, dont forget naty of the future-->
-            <input type="text" placeholder="Username" required>
-        </div>
-        <div class="input-login-box">
-            <!--Add nice image here for password, dont forget naty of the future-->
-            <input type="password" placeholder="Password" required>
-        </div>
-        <div class="remember-forgot-check">
-            <label><input type="checkbox">Remember me</label>
-            <a href="#no exisitingrightnow">Forgot password?</a>
-        </div>
-        <button type="submit" class="btn">Login</button>
-        <div class="register">
-            <p>Don't have an account? <a href="#noexistingrightnow">Register</a></p>
-        </div>
-    </form>
-    </div>
-</body>
-</html>
+require_once __DIR__ . "/private/helpers/init.php"; //ask if i need to use autoloader
+
+use Project\Application;
+use Teacher\GivenCode\Domain\WebpageRoute;
+use Teacher\GivenCode\Services\InternalRouter;
+
+// Create the Application instance.
+$application = new Application();
+Debug::$DEBUG_MODE = false;
+
+// Here you can add your routes to the router if needed
+// $application->getRouter()->addRoute(new WebpageRoute('/path', 'Controller@method'));
+
+// Adding CRUD routes for users
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/create', 'Project\Controllers\UserController@create'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/read', 'Project\Controllers\UserController@get'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/update', 'Project\Controllers\UserController@put'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/delete', 'Project\Controllers\UserController@delete'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/login', 'Project\Controllers\UserController@login'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/addToGroup',
+                                                         'Project\Controllers\UserController@addUserToGroup'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+try {
+    $application->getRouter()->addRoute(new WebpageRoute('/user/removeFromGroup',
+                                                         'Project\Controllers\UserController@removeUserFromGroup'));
+} catch (\Teacher\GivenCode\Exceptions\ValidationException $e) {
+}
+
+
+// Run the application.
+$application->run();
+
