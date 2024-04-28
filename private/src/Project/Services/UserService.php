@@ -18,6 +18,7 @@ use Project\DTOs\User;
 use Teacher\GivenCode\Abstracts\IService;
 use Teacher\GivenCode\Exceptions\RuntimeException;
 use Teacher\GivenCode\Exceptions\ValidationException;
+use Teacher\GivenCode\Services\DBConnectionService;
 
 /**
  *
@@ -27,9 +28,14 @@ class UserService implements IService {
     private UserGroupDAO $userGroupDao;
     private PermissionDao $permissionDao;
     
+    /**
+     * @throws RuntimeException
+     */
     public function __construct() {
-        $this->userDao = new UserDAO();
-        $this->userGroupDao = new UserGroupDAO();
+        $pdo = DBConnectionService::getConnection();
+        $this->userDao = new UserDao($pdo);
+        $this->userGroupDao = new UserGroupDao($pdo);
+        $this->permissionDao = new PermissionDao($pdo);
     }
     
     /**

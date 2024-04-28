@@ -90,6 +90,7 @@ class UserController extends AbstractController {
     
     /**
      * TODO: Function documentation put
+     *
      * @return void
      *
      * @throws RequestException
@@ -126,6 +127,7 @@ class UserController extends AbstractController {
     
     /**
      * TODO: Function documentation delete
+     *
      * @return void
      *
      * @throws RequestException
@@ -171,36 +173,31 @@ class UserController extends AbstractController {
     }
     
     
-    private function validateUserData($data) : array {
-        // Check requiered fields
+    private function validateUserData($data) : void {
+        // Check required fields
         if (empty($data['username']) || empty($data['password']) || empty($data['email'])) {
-            return ['success' => false, 'message' => 'Username, password, and email are required.'];
+            throw new ValidationException('Username, password, and email are required.');
         }
         if (!ctype_alnum($data['username'])) {
-            return ['success' => false, 'message' => 'Username must contain only alphanumeric characters.'];
+            throw new ValidationException('Username must contain only alphanumeric characters.');
         }
-        
-        // Validate username
+        // Validate username length
         if ((strlen($data['username']) < 3) || (strlen($data['username']) > 30)) {
-            return ['success' => false, 'message' => 'Username must be between 3 and 30 characters.'];
+            throw new ValidationException('Username must be between 3 and 30 characters.');
         }
-        
-        // Validate password
+        // Validate password length
         if (strlen($data['password']) < 6) {
-            return ['success' => false, 'message' => 'Password must be at least 6 characters.'];
+            throw new ValidationException('Password must be at least 6 characters.');
         }
-        
         // Validate email format
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            return ['success' => false, 'message' => 'Invalid email format.'];
+            throw new ValidationException('Invalid email format.');
         }
-        
-        // If the user do a good job all checks pass, return success hopefully :)
-        return ['success' => true, 'message' => 'Validation successful.'];
     }
     
     /***
      * TODO: Function documentation addUserToGroup
+     *
      * @return void
      *
      * @throws RequestException
@@ -231,6 +228,7 @@ class UserController extends AbstractController {
     
     /***
      * TODO: Function documentation removeUserFromGroup
+     *
      * @return void
      *
      * @throws RequestException
@@ -261,6 +259,7 @@ class UserController extends AbstractController {
     
     /***
      * TODO: Function documentation login
+     *
      * @return void
      *
      *
@@ -268,24 +267,34 @@ class UserController extends AbstractController {
      * @since  2024-04-11
      */
     public function login() : void {
-        //$username and $password are obtained from the request
-        $username = $_REQUEST['username'];
-        $password = $_REQUEST['password'];
+        $username = $_POST['username'] ?? null;
+        $password = $_POST['password'] ?? null;
         
         try {
             $user_id = $this->userService->authenticate($username, $password);
             if ($user_id) {
-                $permissions = $this->userService->getUserPermissions($user_id);
-                $_SESSION['permissions'] = $permissions;
-                echo json_encode(['message' => 'Login successful']);
+                // Set the session variables
+                $_SESSION['loggedin'] = true;
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['username'] = $username;
+                // Assuming getUserPermissions returns an array of permission identifiers
+                $_SESSION['permissions'] = $this->userService->getUserPermissions($user_id);
+                
+                // Redirect to home page
+                header('Location: /420DW3_07278_Project/home');
+                exit;
             } else {
-                throw new RequestException("Authentication failed.", 401);
+                // Authentication failed, redirect back to login with an error
+                $_SESSION['error'] = 'Invalid username or password.';
+                header('Location: /420DW3_07278_Project/login');
+                exit;
             }
         } catch (Exception $exception) {
-            http_response_code($exception->getCode() ?: 500);
-            echo json_encode(['error' => $exception->getMessage()]);
+            // Handle errors and redirect back to the login page
+            $_SESSION['error'] = 'An error occurred during login.';
+            header('Location: /420DW3_07278_Project/login');
+            exit;
+            
         }
     }
-    
-    
 }

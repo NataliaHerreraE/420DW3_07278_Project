@@ -20,7 +20,11 @@ namespace Teacher\GivenCode\Domain;
 abstract class AbstractRoute {
     
     private string $routePath;
+    private mixed $path;
     
+    /**
+     * @param string $uri
+     */
     public function __construct(string $uri) {
         $this->setRoutePath($uri);
     }

@@ -30,7 +30,9 @@ class UserDao implements IDAO {
     "` SET `username` = :username, `user_password` = :password, `email` = :email WHERE `user_id` = :user_id;";
     private const DELETE_QUERY = "DELETE FROM `" . User::TABLE_NAME . "` WHERE `user_id` = :user_id;";
     
-    public function __construct() {}
+    public function __construct() {
+        $this->db = DBConnectionService::getConnection();
+    }
     
     /**
      * {@inheritDoc}

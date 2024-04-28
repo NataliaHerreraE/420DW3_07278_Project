@@ -25,6 +25,18 @@ require_once "constants.php";
 function project_autoloader(string $classFQN) : void {
     $path_from_fqn = str_replace("\\", NAMESPACE_PATH_SEPARATOR, $classFQN);
     require_once PRJ_SRC_DIR . $path_from_fqn . ".php";
+    
+  /*  $path_from_fqn = str_replace("\\", DIRECTORY_SEPARATOR, $classFQN);
+    $full_path = PRJ_SRC_DIR . $path_from_fqn . ".php";
+    
+    // Debugging output
+    echo "Attempting to load: " . $full_path . "<br>";
+    
+    if(file_exists($full_path)) {
+        require_once $full_path;
+    } else {
+        echo "Failed to load: " . $full_path . "<br>";
+    }*/
 }
 
 spl_autoload_register("project_autoloader");

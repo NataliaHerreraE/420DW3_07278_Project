@@ -11,13 +11,7 @@ declare(strict_types=1);
 
 namespace Teacher\GivenCode\Services;
 
-use Marc\Project\controllers\myTestController;
-use Teacher\Examples\Controllers\AuthorController;
-use Teacher\Examples\Controllers\BookController;
-use Teacher\Examples\Controllers\ExampleController;
-use Teacher\Examples\Controllers\LoginController;
-use Teacher\Examples\Controllers\MyNewController;
-use Teacher\Examples\Controllers\PageNavigator;
+use Project\Controllers\UserController;
 use Teacher\GivenCode\Abstracts\IService;
 use Teacher\GivenCode\Domain\AbstractRoute;
 use Teacher\GivenCode\Domain\APIRoute;
@@ -42,19 +36,16 @@ class InternalRouter implements IService {
      * @param string $uri_base_directory
      * @throws ValidationException
      */
-    public function __construct(string $uri_base_directory = "") {
+    public function __construct(string $uri_base_directory = "/") {
         $this->uriBaseDirectory = $uri_base_directory;
         $this->routes = new RouteCollection();
-        $this->routes->addRoute(new APIRoute("/api/exampleDTO", ExampleController::class));
-        $this->routes->addRoute(new APIRoute("/api/login", LoginController::class));
-        $this->routes->addRoute(new APIRoute("/api/books", BookController::class));
-        $this->routes->addRoute(new APIRoute("/api/authors", AuthorController::class));
-        $this->routes->addRoute(new WebpageRoute("/index.php", "Teacher/Examples/example_page.php"));
-        $this->routes->addRoute(new WebpageRoute("/", "Teacher/Examples/example_page.php"));
-        $this->routes->addRoute(new CallableRoute("/pages/login", [PageNavigator::class, "loginPage"]));
-        $this->routes->addRoute(new CallableRoute("/pages/books", [PageNavigator::class, "booksManagementPage"]));
-        $this->routes->addRoute(new CallableRoute("/pages/authors", [PageNavigator::class, "authorsManagementPage"]));
+        
     }
+    
+    /**
+     * @throws ValidationException
+     */
+    
     
     /**
      * TODO: Function documentation
@@ -70,12 +61,10 @@ class InternalRouter implements IService {
         $route = $this->routes->match($path);
         
         if (is_null($route)) {
-            // route not found
             throw new RequestException("Route [$path] not found.", 404);
         }
         
         $route->route();
-        
     }
     
     /**

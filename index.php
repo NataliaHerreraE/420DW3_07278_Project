@@ -8,16 +8,29 @@ declare(strict_types=1);
  * @since 2024-03-14
  * (c) Copyright 2024 Marc-Eric Boury 
  */
-
+require_once 'private/helpers/autoloader.php';
 require_once "private/helpers/init.php";
 
-use Teacher\Examples\ApplicationExample;
+use Project\Application;
+use Teacher\GivenCode\Domain\CallableRoute;
+use Teacher\GivenCode\Domain\WebpageRoute;
+use Teacher\GivenCode\Services\InternalRouter;
+use Project\Controllers\UserController;
 
 Debug::$DEBUG_MODE = false;
+//Debug::$DEBUG_MODE = true;
 
-// TODO @Students You should create your own 'application'-style class and use it here
-// You can base yourself on my own 'Teacher\Examples\ApplicationExample' class;
-// in it you can use my 'Teacher\GivenCode\Services\InternalRouter' class wich is given code.
-$application = new ApplicationExample();
+
+//define('InternalRouter', true);
+$application = new Application();
+$application->getRouter()->addRoute(new WebpageRoute("/", "Project/login.php"));
+$application->getRouter()->addRoute(new WebpageRoute("/index.php", "Project/login.php"));
+$application->getRouter()->addRoute(new WebpageRoute("/home", "Project/home.php"));
+
+
+
+
+
+
+// Run the application
 $application->run();
-

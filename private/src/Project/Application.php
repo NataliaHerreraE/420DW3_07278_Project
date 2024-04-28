@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace Project;
 
+use Teacher\GivenCode\Domain\WebpageRoute;
 use Teacher\GivenCode\Exceptions\RequestException;
+use Teacher\GivenCode\Exceptions\ValidationException;
 use Teacher\GivenCode\Services\InternalRouter;
 
 /**
@@ -19,9 +21,12 @@ use Teacher\GivenCode\Services\InternalRouter;
 class Application {
     private InternalRouter $router;
     
+    /**
+     * @throws ValidationException
+     */
     public function __construct() {
         $this->router = new InternalRouter();
-        // it can not use dynamic route registration ??
+        
     }
     
     /**

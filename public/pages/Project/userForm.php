@@ -218,7 +218,7 @@ $canSearchUsers = in_array('SEARCH_ALLOWED', $permissions);
             fetchDeletedUsers();
         });
         
-        // Fetch all groups on page load if the user can manage groups
+        // rewrite later
         if (canManageGroups) {
             fetchGroups();
         }
@@ -227,7 +227,7 @@ $canSearchUsers = in_array('SEARCH_ALLOWED', $permissions);
         fetchUsers();
     });
     
-    // Functions for fetching users and deleted users need to be implemented similarly
+    //do the rest later
 </script>
 
 

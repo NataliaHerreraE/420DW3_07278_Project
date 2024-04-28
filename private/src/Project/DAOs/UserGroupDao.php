@@ -32,9 +32,11 @@ class UserGroupDao implements IDAO {
     
     /**
      * @param PDO $connection
+     * @throws RuntimeException
      */
     public function __construct(PDO $connection) {
-        $this->connection = $connection;
+        //$this->connection = $connection;
+        $this->connection = DBConnectionService::getConnection();
     }
     
     /**

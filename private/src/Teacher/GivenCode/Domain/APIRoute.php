@@ -30,10 +30,10 @@ class APIRoute extends AbstractRoute {
      * TODO: documentation
      *
      * @param string $uri
-     * @param string $controllerClass
+     * @param array  $controllerClass
      * @throws ValidationException
      */
-    public function __construct(string $uri, string $controllerClass) {
+    public function __construct(string $uri, array $controllerClass) {
         if (!class_exists($controllerClass)) {
             throw new ValidationException("APIRoute specified controller class [$controllerClass] does not exists.");
         }
