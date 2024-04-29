@@ -28,6 +28,7 @@ $application->getRouter()->addRoute(new WebpageRoute("/", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/index", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/login", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/home", "Project/home.php"));
+$application->getRouter()->addRoute(new CallableRoute("/api/doLogin", [\Project\Controllers\LoginController::class, "doLogin"]));
 
 
 // Run the application
