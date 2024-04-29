@@ -31,7 +31,7 @@ class User extends AbstractDTO {
     // Max length constants for validation
     private const USERNAME_MAX_LENGTH = 30;
     private const EMAIL_MAX_LENGTH = 30;
-    private const PASSWORD_MAX_LENGTH = 25;
+    private const PASSWORD_MAX_LENGTH = 85;
     
     // User properties
     private string $username;
@@ -82,13 +82,15 @@ class User extends AbstractDTO {
         $object->setUsername($dbAssocArray['username']);
         $object->setPassword($dbAssocArray['user_password']);
         $object->setEmail($dbAssocArray['email']);
-        $object->setCreatedAt(
-            DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["created_at"])
-        );
-        $object->setUpdatedAt(
-            DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
-        );
-        $object->setIsDeleted($dbAssocArray['is_deleted']);
+        $createdAt = isset($dbAssocArray["created_at"])
+            ? DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["created_at"])
+            : null;
+        
+        $updatedAt = isset($dbAssocArray["updated_at"])
+            ? DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
+            : null;
+        $isDeleted = boolval($dbAssocArray['is_deleted']);
+        $object->setIsDeleted($isDeleted);
         return $object;
     }
     

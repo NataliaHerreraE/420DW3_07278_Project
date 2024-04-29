@@ -29,9 +29,11 @@ class PermissionDao implements IDAO {
     private const UPDATE_QUERY = "UPDATE `" . Permission::TABLE_NAME .
     "` SET `permission_key` = :permission_key, `name` = :name, `description` = :description WHERE `permission_id` = :permission_id;";
     private const DELETE_QUERY = "DELETE FROM `" . Permission::TABLE_NAME . "` WHERE `permission_id` = :permission_id;";
-    private $connection;
+    private PDO $connection;
     
-    public function __construct() {}
+    public function __construct() {
+        $this->connection = DBConnectionService::getConnection();
+    }
     
     /**
      * {@inheritDoc}

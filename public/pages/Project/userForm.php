@@ -39,9 +39,9 @@ $canSearchUsers = in_array('SEARCH_ALLOWED', $permissions);
 <html lang="en">
 <head>
     <title>User Management</title>
-    <link rel="stylesheet" href="/public/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/public/css/style.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'bootstrap.min.css' ?>">
+    <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'style.css' ?>">
+    <script src="<?= WEB_JS_DIR ?>script.js"></script>
 </head>
 <body>
 <div class="container">

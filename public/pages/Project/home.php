@@ -1,6 +1,8 @@
 <?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
-session_start();
 /**
  * 420DW3_07278_Project Home.php
  *
@@ -47,21 +49,31 @@ $permissionsNeeded = [
     <script src="<?= WEB_JS_DIR ?>script.js"></script>
 </head>
 <body>
-<div class="welcome-message">
-    <h1>Welcome, <?= $username; ?>!</h1>
+<div class="container">
+    <div class="welcome-message">
+        <h1>Welcome, <?= $username; ?>!</h1>
+    </div>
+    <br>
+    <div class="menu">
+        <br>
+        <!-- Buttons will only appear if the user has the required permissions -->
+        <?php if (hasPermissionForForm($permissionsNeeded['userForm'], $userPermissions)): ?>
+            <p class="userForm">Explanation about the user form and what it does.</p>
+            <button onclick="location.href='<?php echo WEB_ROOT_DIR; ?>userForm'">User Form</button>
+        <?php endif; ?>
+        <br>
+        <?php if (hasPermissionForForm($permissionsNeeded['permissionForm'], $userPermissions)): ?>
+            <p class="permissionForm">Explanation about the user form and what it does.</p>
+            <button onclick="location.href='permissionForm.php'">Permission Form</button>
+        <?php endif; ?>
+        <br>
+        <?php if (hasPermissionForForm($permissionsNeeded['groupForm'], $userPermissions)): ?>
+            <p class="groupForm">Explanation about the user form and what it does.</p>
+            <button onclick="location.href='groupForm.php'">Group Form</button>
+        <?php endif; ?>
+    
+    </div>
+
 </div>
-
-<!-- Buttons will only appear if the user has the required permissions -->
-<?php if (hasPermissionForForm($permissionsNeeded['userForm'], $userPermissions)): ?>
-    <button onclick="location.href='userForm.php'">User Form</button>
-<?php endif; ?>
-
-<?php if (hasPermissionForForm($permissionsNeeded['permissionForm'], $userPermissions)): ?>
-    <button onclick="location.href='permissionForm.php'">Permission Form</button>
-<?php endif; ?>
-
-<?php if (hasPermissionForForm($permissionsNeeded['groupForm'], $userPermissions)): ?>
-    <button onclick="location.href='groupForm.php'">Group Form</button>
-<?php endif; ?>
 </body>
 </html>

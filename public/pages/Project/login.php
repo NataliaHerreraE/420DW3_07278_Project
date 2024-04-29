@@ -26,7 +26,13 @@ if (session_status() == PHP_SESSION_NONE) {
     <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'style.css' ?>">
     <script src="<?= WEB_JS_DIR ?>script.js"></script>
 </head>
-<body>
+<?php
+/*$password = "pass123";
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+echo $hashedPassword;
+*/?>
+<body class="login-background">
 
 <div class="container">
     <?php if (!empty($error)): ?>

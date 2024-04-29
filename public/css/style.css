@@ -13,6 +13,10 @@ body{
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    background-color: #F8C9CB;
+}
+
+.login-background {
     background: url('../images/Project/landscape.jpg') no-repeat;
     background-size: cover;
     background-position: center;
@@ -30,10 +34,10 @@ body{
 }
 
 .container h1 {
-    font-size: 5.5rem; /*36px?*/
+    font-size: 1.5rem; /* Adjusted font size */
+    color: #DC4049; /* Deep red */
     margin-bottom: 20px;
     text-align: center;
-    color: #DC4049; /* Deep purple */
 }
 
 .container .input-login-box {
