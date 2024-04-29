@@ -273,28 +273,39 @@ class UserController extends AbstractController {
         try {
             $user_id = $this->userService->authenticate($username, $password);
             if ($user_id) {
-                // Set the session variables
-                $_SESSION['loggedin'] = true;
-                $_SESSION['user_id'] = $user_id;
-                $_SESSION['username'] = $username;
-                // Assuming getUserPermissions returns an array of permission identifiers
-                $_SESSION['permissions'] = $this->userService->getUserPermissions($user_id);
+                $permissions = $this->userService->getUserPermissions($user_id);
                 
-                // Redirect to home page
-                header('Location: /420DW3_07278_Project/home');
-                exit;
+                // Check if the user has the LOGIN_ALLOWED permission
+                if (in_array('LOGIN_ALLOWED', $permissions)) {
+                    // Set the session variables
+                    $_SESSION['loggedin'] = true;
+                    $_SESSION['user_id'] = $user_id;
+                    $_SESSION['username'] = $username;
+                    $_SESSION['permissions'] = $permissions;
+                    
+                    // Redirect to home page
+                    header('Location: /420DW3_07278_Project/home.php');
+                    exit;
+                } else {
+                    // Authentication succeeded but the user does not have the LOGIN_ALLOWED permission
+                    $_SESSION['error'] = 'Access denied. You do not have permission to login.';
+                    header('Location: /420DW3_07278_Project/login.php');
+                    
+                    exit;
+                }
             } else {
-                // Authentication failed, redirect back to login with an error
+                // Authentication failed
                 $_SESSION['error'] = 'Invalid username or password.';
-                header('Location: /420DW3_07278_Project/login');
+                header('Location: /420DW3_07278_Project/login.php');
+                
                 exit;
             }
         } catch (Exception $exception) {
             // Handle errors and redirect back to the login page
             $_SESSION['error'] = 'An error occurred during login.';
-            header('Location: /420DW3_07278_Project/login');
+            header('Location: /420DW3_07278_Project/login.php');
             exit;
-            
         }
     }
+    
 }

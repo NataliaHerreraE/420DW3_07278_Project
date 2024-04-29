@@ -1,8 +1,5 @@
-
 RewriteEngine On
 RewriteBase /420DW3_07278_Project/
-##RewriteCond %{REQUEST_URI} !^(.*/public/.*|.*/index.php|/420DW3_07278_Project/)$
-##RewriteRule ^.*$ /420DW3_07278_Project/index.php [L,QSA]
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^ index.php [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /420DW3_07278_Project/index.php [L]

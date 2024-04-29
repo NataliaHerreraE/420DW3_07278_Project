@@ -6,6 +6,10 @@
  * @since   2024-03-30
  * (c) Copyright 2024 Natalia Herrera.
  */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,27 +18,35 @@ if (session_status() == PHP_SESSION_NONE) {
 use Project\Services\UserService;
 require_once __DIR__ . '/../../../private/src/Project/Services/UserService.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
+    
+    // Create an instance of UserService and attempt to authenticate
     $userService = new UserService();
     
     try {
         $user_id = $userService->authenticate($username, $password);
         if ($user_id) {
+            // Set session variables
             $_SESSION['loggedin'] = true;
             $_SESSION['user_id'] = $user_id;
             $_SESSION['username'] = $username;
-            header('Location: /home.php');  // Redirect to home page after successful login
+            // Retrieve permissions and set in session if needed
+            $_SESSION['permissions'] = $userService->getUserPermissions($user_id);
+            
+            // Redirect to the home page with a GET request
+            header('Location: /420DW3_07278_Project/home.php');
             exit;
         } else {
-            // Set an error message and show the login form again
+            // Authentication failed, prepare error message for the user
             $error = 'Invalid username or password.';
         }
     } catch (Exception $e) {
-        // Log error or handle exceptions
+        // Handle errors, prepare error message for the user
         $error = 'An error occurred during login.';
     }
+
 }
 ?>
 <!DOCTYPE html>
@@ -44,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="public/css/bootstrap.min.css">
-    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'bootstrap.min.css' ?>">
+    <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'style.css' ?>">
     <script src="<?= WEB_JS_DIR ?>script.js"></script>
 </head>
 <body>
@@ -54,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <?php if (!empty($error)): ?>
         <p><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
-    <form action="home.php" method="post">
+    <form action="<?= WEB_PAGES_DIR . 'home.php' ?>" method="post">
         <h1>Login</h1>
         <div class="input-login-box">
             <!-- Add an image here for the username, if needed -->
@@ -68,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <label><input type="checkbox" name="remember"> Remember me</label>
             <a href="#forgotpassword">Forgot password?</a> <!-- Update the href when forgot password page is ready -->
         </div>
+        <br>
         <button type="submit" class="btn">Login</button>
         <div class="register">
             <p>Don't have an account? <a href="#register">Register</a></p> <!-- Update the href when the registration page is ready -->

@@ -110,6 +110,8 @@ const WEB_ROOT_DIR = WEB_DIRECTORY_SEPARATOR . PRJ_ROOT_DIRNAME . WEB_DIRECTORY_
 
 const WEB_PUBLIC_DIR = WEB_ROOT_DIR . "public" . WEB_DIRECTORY_SEPARATOR;
 
+const WEB_PRIVATE_DIR = WEB_ROOT_DIR . "private" . WEB_DIRECTORY_SEPARATOR;
+
 /**
  * Web path to the public 'css' directory.
  * @const

@@ -20,12 +20,16 @@ use Project\Controllers\UserController;
 Debug::$DEBUG_MODE = false;
 //Debug::$DEBUG_MODE = true;
 
+//error_log('Requested Path: ' . $_SERVER['REQUEST_URI']);
 
 //define('InternalRouter', true);
 $application = new Application();
 $application->getRouter()->addRoute(new WebpageRoute("/", "Project/login.php"));
-$application->getRouter()->addRoute(new WebpageRoute("/index.php", "Project/login.php"));
+$application->getRouter()->addRoute(new WebpageRoute("/index", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/home", "Project/home.php"));
+
+
+
 
 
 
