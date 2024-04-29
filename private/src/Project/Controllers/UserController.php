@@ -284,26 +284,26 @@ class UserController extends AbstractController {
                     $_SESSION['permissions'] = $permissions;
                     
                     // Redirect to home page
-                    header('Location: /420DW3_07278_Project/home.php');
+                    header("location: " . WEB_ROOT_DIR . "home");
                     exit;
                 } else {
                     // Authentication succeeded but the user does not have the LOGIN_ALLOWED permission
                     $_SESSION['error'] = 'Access denied. You do not have permission to login.';
-                    header('Location: /420DW3_07278_Project/login.php');
+                    header("location: " . WEB_ROOT_DIR . "login");
                     
                     exit;
                 }
             } else {
                 // Authentication failed
                 $_SESSION['error'] = 'Invalid username or password.';
-                header('Location: /420DW3_07278_Project/login.php');
+                header("location: " . WEB_ROOT_DIR . "login");
                 
                 exit;
             }
         } catch (Exception $exception) {
             // Handle errors and redirect back to the login page
             $_SESSION['error'] = 'An error occurred during login.';
-            header('Location: /420DW3_07278_Project/login.php');
+            header("location: " . WEB_ROOT_DIR . "login");
             exit;
         }
     }

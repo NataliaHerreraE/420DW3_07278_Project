@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 /**
  * 420DW3_07278_Project Home.php
@@ -13,7 +14,7 @@ ini_set('display_errors', 1);
 if (!isset($_SESSION["loggedin"]) || ($_SESSION["loggedin"] !== true) ||
     !in_array('LOGIN_ALLOWED', $_SESSION['permissions'] ?? [])
 ) {
-    header("location: login");
+    header("location: " . WEB_ROOT_DIR . "login");
     exit;
 }
 

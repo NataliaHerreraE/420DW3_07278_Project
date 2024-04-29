@@ -26,14 +26,8 @@ Debug::$DEBUG_MODE = false;
 $application = new Application();
 $application->getRouter()->addRoute(new WebpageRoute("/", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/index", "Project/login.php"));
+$application->getRouter()->addRoute(new WebpageRoute("/login", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/home", "Project/home.php"));
-
-
-
-
-
-
-
 
 
 // Run the application

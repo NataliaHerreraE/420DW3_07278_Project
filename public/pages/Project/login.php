@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     
-    // Create an instance of UserService and attempt to authenticate
     $userService = new UserService();
     
     try {
@@ -36,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['permissions'] = $userService->getUserPermissions($user_id);
             
             // Redirect to the home page with a GET request
-            header('Location: /420DW3_07278_Project/home.php');
+            header("Location: " . WEB_ROOT_DIR . "home");
             exit;
         } else {
             // Authentication failed, prepare error message for the user
@@ -66,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (!empty($error)): ?>
         <p><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
-    <form action="<?= WEB_PAGES_DIR . 'home.php' ?>" method="post">
+    <form action="<?= WEB_PAGES_DIR . 'home' ?>" method="post">
         <h1>Login</h1>
         <div class="input-login-box">
             <!-- Add an image here for the username, if needed -->
@@ -83,7 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <br>
         <button type="submit" class="btn">Login</button>
         <div class="register">
-            <p>Don't have an account? <a href="#register">Register</a></p> <!-- Update the href when the registration page is ready -->
+            <p>Don't have an account? <a href="#register">Register</a></p>
+            <!-- Update the href when the registration page is ready -->
         </div>
     </form>
 </div>
