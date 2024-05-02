@@ -37,8 +37,20 @@ class LoginService implements IService {
      * @author Natalia Herrera.
      * @since  2024-04-14
      */
-    public function isLoggedIn() : bool {
-        return isset($_SESSION["LOGGED_IN_USER"]);
+    public static function isLoggedIn() : bool {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Check if the user is logged in
+        $isLoggedIn = isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+        
+        // You might also want to check for specific permissions if needed
+        // For example, check if user has 'LOGIN_ALLOWED' permission
+        $hasLoginPermission = in_array('LOGIN_ALLOWED', $_SESSION['permissions'] ?? []);
+        
+        return $isLoggedIn && $hasLoginPermission;
+        //return isset($_SESSION["LOGGED_IN_USER"]);
     }
     
     /**

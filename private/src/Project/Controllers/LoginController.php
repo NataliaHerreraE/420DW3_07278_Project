@@ -8,10 +8,22 @@
 namespace Project\Controllers;
 
 use Exception;
+use JetBrains\PhpStorm\NoReturn;
 use Project\Services\UserService;
 
+/**
+ *
+ */
 class LoginController {
     
+    /**
+     * TODO: Function documentation doLogin
+     *
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-01
+     */
     public static function doLogin() : void {
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -43,6 +55,32 @@ class LoginController {
             }
             
         }
+    }
+    
+    /***
+     * TODO: Function documentation logout
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-01
+     */
+    public static function dologout() : void {
+        // Clear all session data
+        $_SESSION = [];
+        
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                      $params["path"], $params["domain"],
+                      $params["secure"], $params["httponly"]);
+        }
+        
+        // Destroy the session
+        session_destroy();
+        
+        // Redirect to login page or homepage
+        header("Location: " . WEB_ROOT_DIR . "login");
+        exit;
     }
     
 }

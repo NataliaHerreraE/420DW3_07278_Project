@@ -17,6 +17,7 @@ use Teacher\GivenCode\Domain\WebpageRoute;
 use Teacher\GivenCode\Services\InternalRouter;
 use Project\Controllers\UserController;
 
+
 Debug::$DEBUG_MODE = false;
 //Debug::$DEBUG_MODE = true;
 
@@ -28,7 +29,16 @@ $application->getRouter()->addRoute(new WebpageRoute("/", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/index", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/login", "Project/login.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/home", "Project/home.php"));
-$application->getRouter()->addRoute(new CallableRoute("/api/doLogin", [\Project\Controllers\LoginController::class, "doLogin"]));
+$application->getRouter()->addRoute(new CallableRoute("/api/doLogin",
+                                                      [\Project\Controllers\LoginController::class, "doLogin"]));
+$application->getRouter()->addRoute(new CallableRoute("/api/logout",
+                                                      [\Project\Controllers\LoginController::class, 'dologout']));
+
+// Routes for the User, UserGroup, and Permissions forms
+$application->getRouter()->addRoute(new WebpageRoute("/userForm", "Project/userForm.php"));
+$application->getRouter()->addRoute(new WebpageRoute("/userGroupForm", "Project/groupForm.php"));
+$application->getRouter()->addRoute(new WebpageRoute("/permissionsForm", "Project/permissionForm.php"));
+
 
 
 // Run the application

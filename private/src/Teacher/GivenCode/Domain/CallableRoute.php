@@ -23,6 +23,9 @@ class CallableRoute extends AbstractRoute {
     
     private string $callable_string;
     
+    /**
+     * @param string $uri
+     */
     public function __construct(string $uri, callable $closure) {
         $is_callable = is_callable($closure, false, $out_callable_name);
         if (!$is_callable) {
