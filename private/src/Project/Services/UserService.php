@@ -106,7 +106,7 @@ class UserService implements IService {
         } catch (PDOException $e) {
             throw new RuntimeException("Database error occurred. Please try again later.");
         } catch (Exception $e) {
-            throw new RuntimeException("An error occurred. Please try again later.");
+            throw new RuntimeException("Failed to create user.", 0, $e);
         }
         
     }

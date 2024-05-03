@@ -1,4 +1,26 @@
 // Function to create a user
+
+function getUserById(id) {
+    
+    $.ajax({
+               url: `${baseUrl}api/manage_user`,
+               type: 'GET',
+               contentType: 'application/json',
+               data: JSON.stringify({id: id}),
+               dataType: "json", // Do not forget to add this when you expect JSON data back. The automatic exception outputter will adapt
+               success: function(response) {
+                   $("#debugContents").html(`<pre>${response.responseText}</pre>`);
+                   $('#searchResults').html(response);
+               },
+               error: function(xhr) {
+                   console.error('Error:', xhr.responseText);
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
+                   alert('Failed to search users.');
+               }
+           });
+}
+
+
 function createUser() {
     let userData = {
         username: $('#usernameInput').val(),
@@ -7,16 +29,19 @@ function createUser() {
     };
     
     $.ajax({
-               url: `${baseUrl}/api/create_user`,
+               url: `${baseUrl}api/manage_user`,
                type: 'POST',
                contentType: 'application/json',
                data: JSON.stringify(userData),
+               dataType: "json",
                success: function(response) {
                    alert('User created successfully!');
                    resetForm();
+                   // TODO fill form?
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
                    alert('Failed to create user. Please check the console for more details.');
                }
            });
@@ -32,15 +57,18 @@ function updateUser() {
     };
     
     $.ajax({
-               url: `${baseUrl}/api/update_user`,
-               type: 'PUT', //
+               url: `${baseUrl}api/manage_user`,
+               type: 'PUT',
                contentType: 'application/json',
                data: JSON.stringify(userData),
+               dataType: "json",
                success: function(response) {
+                   $("#debugContents").html(`<pre>${response.responseText}</pre>`);
                    alert('User updated successfully!');
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
                    alert('Failed to update user.');
                }
            });
@@ -51,16 +79,19 @@ function deleteUser() {
     let userId = $('#userIdInput').val();
     
     $.ajax({
-               url: `${baseUrl}/api/delete_user`,
+               url: `${baseUrl}api/manage_user`,
                type: 'DELETE',
-               data: JSON.stringify({ id: userId }),
+               data: JSON.stringify({id: userId}),
                contentType: 'application/json',
+               dataType: "json",
                success: function(response) {
                    alert('User deleted successfully!');
+                   $("#debugContents").html(`<pre>${response.responseText}</pre>`);
                    resetForm(); // Reset form after deletion
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
                    alert('Failed to delete user.');
                }
            });
@@ -71,13 +102,16 @@ function searchByUserId() {
     let userId = $('#userIdSelect').val();
     
     $.ajax({
-               url: `${baseUrl}/api/search_user/${userId}`,
+               url: `${baseUrl}api/search_user/${userId}`,
                type: 'GET',
+               dataType: "json",
                success: function(response) {
+                   $("#debugContents").html(`<pre>${response.responseText}</pre>`);
                    $('#searchResults').html(response);
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
                    alert('Failed to search users.');
                }
            });
@@ -86,13 +120,18 @@ function searchByUserId() {
 // Function to fetch all users
 function fetchAllUsers() {
     $.ajax({
-               url: `${baseUrl}/api/get_all_users`,
+               url: `${baseUrl}api/get_all_users`,
                type: 'GET',
-               success: function(response) {
+               dataType: "json",
+               success: function(response, statusText, xhr) {
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
                    console.log(response); // delete lateeeeeer
+                   console.log(statusText); // delete lateeeeeer
+                   console.log(xhr); // delete lateeeeeer
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
+                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
                    alert('Failed to fetch users.');
                }
            });
@@ -123,7 +162,7 @@ $(document).ready(function () {
 }*/
 
 function fetchUserNames() {
-    $.get(`${baseUrl}/api/get_user_names`, data => {
+    $.get(`${baseUrl}api/get_user_names`, data => {
         var select = $('#userIdSelect');
         select.empty();
         if (Array.isArray(data)) {
@@ -146,7 +185,7 @@ $(document).ready(() => {
 function searchByUserName() {
     let userId = $('#userIdSelect').val();
     $.ajax({
-               url: `${baseUrl}/api/search_user/${userId}`,
+               url: `${baseUrl}api/search_user/${userId}`,
                type: 'GET',
                success: response => {
                    $('#searchResults').html(response);

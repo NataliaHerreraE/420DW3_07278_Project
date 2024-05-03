@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Project\Controllers;
 
 use Exception;
+use Project\DTOs\User;
 use Project\Services\LoginService;
 use Project\Services\UserService;
 use Teacher\GivenCode\Abstracts\AbstractController;
@@ -50,7 +51,7 @@ class UserController extends AbstractController {
         $user_id = (int) $_REQUEST["user_id"];
         try {
             $user = $this->userService->getUserById($user_id);
-            echo $this->jsonResponse($user);
+            echo $this->jsonResponse($user->toArray());
         } catch (Exception $e) {
             http_response_code(500);
             echo $this->jsonResponse(['error' => $e->getMessage()], 500);
@@ -71,16 +72,20 @@ class UserController extends AbstractController {
         $this->requireLogin();
         $data = $this->getJsonData();
         
+        $created_user = $this->userService->createUser($data['username'], $data['password'], $data['email']);
+        echo $this->jsonResponse(['success' => true, 'message' => 'User created successfully', 'userId' => $created_user->getId(), 'user' => $created_user->toArray()]);
+        
+        /*
         try {
-            $created_user = $this->userService->createUser($data['username'], $data['password'], $data['email']);
-            echo $this->jsonResponse(['success' => true, 'message' => 'User created successfully', 'userId' => $created_user->getId()]);
         } catch (ValidationException $ve) {
             http_response_code(400);
             echo $this->jsonResponse(['success' => false, 'message' => $ve->getMessage()]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo $this->jsonResponse(['success' => false, 'message' => 'Internal server error']);
+            //http_response_code(500);
+            //echo $this->jsonResponse(['success' => false, 'message' => 'Internal server error']);
+            throw $e;
         }
+        */
     }
     
     
@@ -100,7 +105,7 @@ class UserController extends AbstractController {
         
         $this->validateUserData($data);
         $updated_user = $this->userService->updateUser($data['user_id'], $data['username'], $data['password'], $data['email']);
-        echo $this->jsonResponse(['message' => 'User updated successfully', 'userId' => $updated_user->getId()]);
+        echo $this->jsonResponse(['message' => 'User updated successfully', 'userId' => $updated_user->getId(), 'user' => $updated_user->toArray()]);
         
     }
     
@@ -302,11 +307,31 @@ class UserController extends AbstractController {
      * @author Natalia Herrera.
      * @since  2024-05-03
      */
-    public function getUserNames() : void {
+    public static function getUserNames() : void {
         header('Content-Type: application/json');
         try {
-            $users = $this->userService->getUserByUsername();
+            $userService = new UserService();
+            $users = $userService->getAllUsers();
             echo json_encode(['success' => true, 'data' => $users]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+    
+    public static function getAllUsers() : void {
+        header('Content-Type: application/json');
+        try {
+            $userService = new UserService();
+            $users = $userService->getAllUsers();
+            $usersArray = [];
+            foreach ($users as $user) {
+                if ($user instanceof User) {
+                    $usersArray[$user->getId()] = $user->toArray();
+                    
+                }
+            }
+            echo json_encode(['success' => true, 'data' => $usersArray]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);

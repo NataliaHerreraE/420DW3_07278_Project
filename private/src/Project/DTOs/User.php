@@ -37,8 +37,8 @@ class User extends AbstractDTO {
     private string $username;
     private string $password;
     private string $email;
-    private ?DateTime $createdAt;
-    private ?DateTime $updatedAt;
+    private ?DateTime $createdAt = null;
+    private ?DateTime $updatedAt = null;
     private bool $isDeleted;
     
     
@@ -83,15 +83,28 @@ class User extends AbstractDTO {
         $object->setPassword($dbAssocArray['user_password']);
         $object->setEmail($dbAssocArray['email']);
         $createdAt = isset($dbAssocArray["created_at"])
-            ? DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["created_at"])
+            ? DateTime::createFromFormat(DB_TIMESTAMP_FORMAT, $dbAssocArray["created_at"])
             : null;
-        
+        $object->setCreatedAt($createdAt);
         $updatedAt = isset($dbAssocArray["updated_at"])
-            ? DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
+            ? DateTime::createFromFormat(DB_TIMESTAMP_FORMAT, $dbAssocArray["updated_at"])
             : null;
+        $object->setUpdatedAt($updatedAt);
         $isDeleted = boolval($dbAssocArray['is_deleted']);
         $object->setIsDeleted($isDeleted);
         return $object;
+    }
+    
+    public function toArray() : array {
+        return [
+            "id" => $this->getId(),
+            "username" => $this->getUsername(),
+            "password" => $this->getPassword(),
+            "email" => $this->getEmail(),
+            "isDeleted" => $this->getIsDeleted(),
+            "createdAt" => empty($this->getCreatedAt()) ? null : $this->getCreatedAt()->format(HTML_DATETIME_FORMAT),
+            "updatedAt" => empty($this->getUpdatedAt()) ? null : $this->getUpdatedAt()->format(HTML_DATETIME_FORMAT)
+        ];
     }
     
     

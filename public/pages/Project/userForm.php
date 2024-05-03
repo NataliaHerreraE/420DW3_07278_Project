@@ -98,6 +98,10 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
     </div>
 </div>
 
+<div>
+    <h2>DEBUG / INFO DATA</h2>
+    <div id="debugContents"></div>
+</div>
 
 </body>
 </html>
