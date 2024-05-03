@@ -11,12 +11,13 @@ declare(strict_types=1);
 namespace Project\Controllers;
 
 use Exception;
+use Project\Services\LoginService;
 use Project\Services\UserService;
 use Teacher\GivenCode\Abstracts\AbstractController;
 use Teacher\GivenCode\Exceptions\RequestException;
 use Teacher\GivenCode\Exceptions\RuntimeException;
 use Teacher\GivenCode\Exceptions\ValidationException;
-
+use Teacher\GivenCode\Services\DBConnectionService;
 /**
  *
  */
@@ -40,19 +41,20 @@ class UserController extends AbstractController {
      * @since  2024-03-30
      */
     public function get() : void {
-        ob_start();
-        if (empty($_REQUEST["user_id"])) {
-            throw new RequestException("Bad request: required parameter [user_id] not found in the request.", 400);
+        $this->requireLogin();
+        
+        if (empty($_REQUEST["user_id"]) || !is_numeric($_REQUEST["user_id"])) {
+            throw new RequestException("Bad request: required numeric parameter [user_id] not found in the request.", 400);
         }
-        if (!is_numeric($_REQUEST["user_id"])) {
-            throw new RequestException("Bad request: parameter [user_id] value [" . $_REQUEST["user_id"] .
-                                       "] is not numeric.", 400);
-        }
+        
         $user_id = (int) $_REQUEST["user_id"];
-        $user = $this->userService->getUserById($user_id);
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode($user);
-        ob_end_flush();
+        try {
+            $user = $this->userService->getUserById($user_id);
+            echo $this->jsonResponse($user);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo $this->jsonResponse(['error' => $e->getMessage()], 500);
+        }
     }
     
     /**
@@ -66,27 +68,21 @@ class UserController extends AbstractController {
      * @since  2024-03-30
      */
     public function post() : void {
-        ob_start();
-        
-        $data = $_REQUEST;
-        
-        if (!$this->validateUserData($data)) {
-            throw new RequestException("Bad request: Missing or invalid fields.", 400);
-        }
+        $this->requireLogin();
+        $data = $this->getJsonData();
         
         try {
             $created_user = $this->userService->createUser($data['username'], $data['password'], $data['email']);
-        } catch (ValidationException $exception) {
-            throw new RequestException("Validation error: " . $exception->getMessage(), 422);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
+            echo $this->jsonResponse(['success' => true, 'message' => 'User created successfully', 'userId' => $created_user->getId()]);
+        } catch (ValidationException $ve) {
+            http_response_code(400);
+            echo $this->jsonResponse(['success' => false, 'message' => $ve->getMessage()]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo $this->jsonResponse(['success' => false, 'message' => 'Internal server error']);
         }
-        
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode(['message' => 'User created successfully', 'userId' => $created_user->getId()]);
-        
-        ob_end_flush();
     }
+    
     
     /**
      * TODO: Function documentation put
@@ -99,29 +95,13 @@ class UserController extends AbstractController {
      * @since  2024-03-30
      */
     public function put() : void {
-        $data = $_REQUEST;
+        $this->requireLogin();
+        $data = $this->getJsonData();
         
-        if (empty($data['user_id'])) {
-            throw new RequestException("User ID is required for updating.", 400);
-        }
+        $this->validateUserData($data);
+        $updated_user = $this->userService->updateUser($data['user_id'], $data['username'], $data['password'], $data['email']);
+        echo $this->jsonResponse(['message' => 'User updated successfully', 'userId' => $updated_user->getId()]);
         
-        if (!$this->validateUserData($data)) {
-            throw new RequestException("Bad request: Missing or invalid fields.", 400);
-        }
-        
-        try {
-            $updated_user = $this->userService->updateUser((int) $data['user_id'], $data['username'], $data['password'],
-                                                           $data['email']);
-        } catch (ValidationException $exception) {
-            throw new RequestException("Validation error: " . $exception->getMessage(), 422);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
-        }
-        
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode(['message' => 'User updated successfully', 'userId' => $updated_user->getId()]);
-        
-        ob_end_flush();
     }
     
     
@@ -136,42 +116,46 @@ class UserController extends AbstractController {
      * @since  2024-03-30
      */
     public function delete() : void {
-        ob_start();
+        $this->requireLogin();
+        $data = $this->getJsonData();
         
-        // Retrieve the user ID from theform
-        $user_id = $_REQUEST['userId'] ?? null;
-        
-        if (is_null($user_id) || !is_numeric($user_id)) {
+        if (empty($data['user_id']) || !is_numeric($data['user_id'])) {
             throw new RequestException("Bad request: User ID is missing or invalid.", 400);
         }
         
-        // Convert the user ID to an integer
-        $user_id = (int) $user_id;
-        
-        try {
-            // Check if the user exists
-            $user = $this->userService->getUserById($user_id);
-            if (!$user) {
-                throw new RequestException("User not found.", 404);
-            }
-            
-            // hard or soft delete?
-            $hard_delete = false; // Set true for hard delete.... otherwise rise the flag? (maybe change it later)
-            $this->userService->deleteUser($user_id, $hard_delete);
-            
-            // If everything went well, send a success response, hopelly it does :)
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode(['message' => 'User deleted successfully']);
-        } catch (RequestException $exception) {
-            http_response_code($exception->getHttpResponseCode());
-            echo json_encode(['error' => $exception->getMessage()]);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
-        }
-        
-        ob_end_flush();
+        $user_id = (int) $data['user_id'];
+        $this->userService->deleteUser($user_id);
+        echo $this->jsonResponse(['message' => 'User deleted successfully'], 204);
     }
     
+    /**
+     * TODO: Function documentation getUserIds
+     *
+     * @return void
+     *
+     * @throws Exception
+     * @author Natalia Herrera.
+     * @since  2024-05-03
+     */
+    public function getUserIds() : void {
+        header('Content-Type: application/json');
+        $ids = $this->userService->getAllUserIds();
+        echo json_encode($ids);
+    }
+    
+    private function requireLogin() : void {
+        if (!LoginService::isLoggedIn()) {
+            throw new RequestException("Not authorized.", 401);
+        }
+    }
+    
+    private function getJsonData() {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new RequestException("Invalid JSON data received.", 400);
+        }
+        return $data;
+    }
     
     private function validateUserData($data) : void {
         // Check required fields
@@ -195,6 +179,12 @@ class UserController extends AbstractController {
         }
     }
     
+    private function jsonResponse($data, $statusCode = 200) : void {
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+        echo json_encode($data);
+    }
+    
     /***
      * TODO: Function documentation addUserToGroup
      *
@@ -207,23 +197,21 @@ class UserController extends AbstractController {
      * @since  2024-04-11
      */
     public function addUserToGroup() : void {
-        ob_start();
-        $data = $_REQUEST;
+        $this->requireLogin(); // Ensures the user is logged in.
         
-        if (empty($data['userId']) || empty($data['groupId'])) {
-            throw new RequestException("User ID and Group ID are required.", 400);
+        $data = $this->getJsonData(); // Get JSON data from the request.
+        
+        if (empty($data['userId']) || empty($data['groupId']) || !is_numeric($data['userId']) || !is_numeric($data['groupId'])) {
+            throw new RequestException("User ID and Group ID are required and must be numeric.", 400);
         }
         
         try {
             $this->userService->addUserToGroup((int) $data['userId'], (int) $data['groupId']);
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode(['message' => 'User added to group successfully']);
+            echo $this->jsonResponse(['message' => 'User added to group successfully']);
         } catch (Exception $exception) {
             http_response_code(500);
-            echo json_encode(['error' => $exception->getMessage()]);
+            echo $this->jsonResponse(['error' => $exception->getMessage()], 500);
         }
-        
-        ob_end_flush();
     }
     
     /***
@@ -238,23 +226,21 @@ class UserController extends AbstractController {
      * @since  2024-04-11
      */
     public function removeUserFromGroup() : void {
-        ob_start();
-        $data = $_REQUEST;
+        $this->requireLogin(); // Ensures the user is logged in.
         
-        if (empty($data['userId']) || empty($data['groupId'])) {
-            throw new RequestException("User ID and Group ID are required.", 400);
+        $data = $this->getJsonData(); // Get JSON data from the request.
+        
+        if (empty($data['userId']) || empty($data['groupId']) || !is_numeric($data['userId']) || !is_numeric($data['groupId'])) {
+            throw new RequestException("User ID and Group ID are required and must be numeric.", 400);
         }
         
         try {
             $this->userService->removeUserFromGroup((int) $data['userId'], (int) $data['groupId']);
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode(['message' => 'User removed from group successfully']);
+            echo $this->jsonResponse(['message' => 'User removed from group successfully']);
         } catch (Exception $exception) {
             http_response_code(500);
-            echo json_encode(['error' => $exception->getMessage()]);
+            echo $this->jsonResponse(['error' => $exception->getMessage()], 500);
         }
-        
-        ob_end_flush();
     }
     
     /***
@@ -307,5 +293,25 @@ class UserController extends AbstractController {
             exit;
         }
     }
+    
+    /**
+     * TODO: Function documentation getUserNames
+     *
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-03
+     */
+    public function getUserNames() : void {
+        header('Content-Type: application/json');
+        try {
+            $users = $this->userService->getUserByUsername();
+            echo json_encode(['success' => true, 'data' => $users]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+    
     
 }

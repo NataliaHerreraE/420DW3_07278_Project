@@ -118,7 +118,8 @@ class User extends AbstractDTO {
      */
     public function setUsername(string $username) : void {
         if (mb_strlen($username) > self::USERNAME_MAX_LENGTH) {
-            throw new ValidationException("Please enter again the Username. Username must not be longer than " . self::USERNAME_MAX_LENGTH . " characters.");
+            throw new ValidationException("Username must not be longer than " . self::USERNAME_MAX_LENGTH .
+                                          " characters. Given: " . mb_strlen($username));
         }
         $this->username = $username;
     }
@@ -355,5 +356,10 @@ class User extends AbstractDTO {
         
         return true;
     }
+/*
+    public function getId() : int {
+        return $this->user_id ?? 0; // Return 0 or some other default value when user_id is null
+    }*/
+    
     
 }

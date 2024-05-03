@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace Project\Services;
 
+use Exception;
+use PDO;
+use PDOException;
 use Project\DAOs\PermissionDao;
 use Project\DAOs\UserDao;
 use Project\DAOs\UserGroupDao;
@@ -79,11 +82,33 @@ class UserService implements IService {
      * @since  2024-03-29
      */
     public function createUser(string $username, string $password, string $email) : User {
-        $user = new User();
-        $user->setUsername($username);
-        $user->setPassword(password_hash($password, PASSWORD_BCRYPT)); // Hashing the password
-        $user->setEmail($email);
-        return $this->userDao->create($user);
+        try {
+            if (empty($username) || empty($password) || empty($email)) {
+                throw new ValidationException("Username, password, and email cannot be empty.");
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new ValidationException("Invalid email format.");
+            }
+            if (strlen($username) < 3 || strlen($username) > 30) {
+                throw new ValidationException("Username must be between 3 and 30 characters.");
+            }
+            if (strlen($password) < 8) {
+                throw new ValidationException("Password must be at least 8 characters long.");
+            }
+            
+            // Proceed with user creation
+            $user = new User();
+            $user->setUsername($username);
+            $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
+            $user->setEmail($email);
+            
+            return $this->userDao->create($user);
+        } catch (PDOException $e) {
+            throw new RuntimeException("Database error occurred. Please try again later.");
+        } catch (Exception $e) {
+            throw new RuntimeException("An error occurred. Please try again later.");
+        }
+        
     }
     
     
@@ -101,13 +126,40 @@ class UserService implements IService {
      * @since  2024-03-29
      */
     public function updateUser(int $id, string $username, string $password = null, string $email) : User {
-        $user = $this->userDao->getById($id);
-        $user->setUsername($username);
-        if ($password !== null) {
-            $user->setPassword(password_hash($password, PASSWORD_BCRYPT)); // Hashing the new password
+        try {
+            // Check if user exists
+            $user = $this->userDao->getById($id);
+            if (!$user) {
+                throw new ValidationException("User not found.");
+            }
+            
+            // Validate the inputs
+            if (empty($username) || empty($email)) {
+                throw new ValidationException("Username and email cannot be empty.");
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new ValidationException("Invalid email format.");
+            }
+            if (strlen($username) < 3 || strlen($username) > 30) {
+                throw new ValidationException("Username must be between 3 and 30 characters.");
+            }
+            if ($password !== null && strlen($password) < 8) {
+                throw new ValidationException("Password must be at least 8 characters long.");
+            }
+            
+            // Update the user data
+            $user->setUsername($username);
+            if ($password !== null) {
+                $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
+            }
+            $user->setEmail($email);
+            
+            return $this->userDao->update($user);
+        } catch (PDOException $e) {
+            throw new RuntimeException("Database error occurred. Please try again later.");
+        } catch (Exception $e) {
+            throw new RuntimeException("An error occurred. Please try again later.");
         }
-        $user->setEmail($email);
-        return $this->userDao->update($user);
     }
     
     
@@ -123,7 +175,18 @@ class UserService implements IService {
      * @since  2024-03-29
      */
     public function deleteUser(int $id, bool $hardDelete = false) : void {
-        $this->userDao->deleteById($id, $hardDelete);
+        try {
+            $user = $this->userDao->getById($id);
+            if (!$user) {
+                throw new ValidationException("User not found.");
+            }
+            
+            $this->userDao->deleteById($id, $hardDelete);
+        } catch (PDOException $e) {
+            throw new RuntimeException("Database error occurred. Please try again later.");
+        } catch (Exception $e) {
+            throw new RuntimeException("An error occurred. Please try again later.");
+        }
     }
     
     /***
@@ -138,8 +201,20 @@ class UserService implements IService {
      * @since  2024-04-11
      */
     public function addUserToGroup(int $userId, int $groupId) : void {
-        // Call the DAO method to add a user to a group
-        $this->userDao->addToGroup($userId, $groupId);
+        try {
+            // Check existence of user and group
+            $user = $this->userDao->getById($userId);
+            $group = $this->userGroupDao->getById($groupId);
+            if (!$user || !$group) {
+                throw new ValidationException("User or Group not found.");
+            }
+            
+            $this->userDao->addToGroup($userId, $groupId);
+        } catch (PDOException $e) {
+            throw new RuntimeException("Database error occurred. Please try again later.");
+        } catch (Exception $e) {
+            throw new RuntimeException("An error occurred. Please try again later.");
+        }
     }
     
     /***
@@ -154,8 +229,20 @@ class UserService implements IService {
      * @since  2024-04-11
      */
     public function removeUserFromGroup(int $userId, int $groupId) : void {
-        // Call the DAO method to remove a user from a group
-        $this->userDao->removeFromGroup($userId, $groupId);
+        try {
+            // Check existence of user and group
+            $user = $this->userDao->getById($userId);
+            $group = $this->userGroupDao->getById($groupId);
+            if (!$user || !$group) {
+                throw new ValidationException("User or Group not found.");
+            }
+            
+            $this->userDao->removeFromGroup($userId, $groupId);
+        } catch (PDOException $e) {
+            throw new RuntimeException("Database error occurred. Please try again later.");
+        } catch (Exception $e) {
+            throw new RuntimeException("An error occurred. Please try again later.");
+        }
     }
     
     /***
@@ -245,5 +332,36 @@ class UserService implements IService {
         } catch (ValidationException|RuntimeException $e) {
             return null;
         }
+    }
+    
+    
+    /**
+     * TODO: Function documentation getAllUserIds
+     *
+     * @return array
+     *
+     * @throws \Exception
+     * @author Natalia Herrera.
+     * @since  2024-05-03
+     */
+    public function getAllUserIds() : array {
+        try {
+            return $this->userDao->fetchAllUserIds();
+        } catch (\Exception $e) {
+            error_log('Failed to fetch user IDs: ' . $e->getMessage());
+            throw new \Exception("Database error occurred: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * TODO: Function documentation getAllUserNames
+     *
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-03
+     */
+    public function getAllUserNames() : array {
+        return $this->userDao->fetchAllUserNames(); // Ensure this method is implemented in UserDao
     }
 }

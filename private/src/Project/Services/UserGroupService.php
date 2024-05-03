@@ -38,7 +38,11 @@ class UserGroupService implements IService {
      * @since  2024-03-29
      */
     public function getAllUserGroups() : array {
-        return $this->userGroupDao->getAll();
+        try {
+            return $this->userGroupDao->getAll();
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error fetching all user groups: " . $e->getMessage());
+        }
     }
     
     /**
@@ -52,7 +56,11 @@ class UserGroupService implements IService {
      * @since  2024-03-29
      */
     public function getUserGroupById(int $id) : ?UserGroup {
-        return $this->userGroupDao->getById($id);
+        try {
+            return $this->userGroupDao->getById($id);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error fetching user group by ID: " . $e->getMessage());
+        }
     }
     
     /**
@@ -68,10 +76,18 @@ class UserGroupService implements IService {
      * @since  2024-03-29
      */
     public function createUserGroup(string $group_name, string $description) : UserGroup {
-        $user_group = new UserGroup();
-        $user_group->setGroupName($group_name);
-        $user_group->setDescription($description);
-        return $this->userGroupDao->create($user_group);
+        if (empty($group_name) || empty($description)) {
+            throw new ValidationException("Group name and description cannot be empty.");
+        }
+        
+        try {
+            $user_group = new UserGroup();
+            $user_group->setGroupName($group_name);
+            $user_group->setDescription($description);
+            return $this->userGroupDao->create($user_group);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error creating user group: " . $e->getMessage());
+        }
     }
     
     /**
@@ -88,10 +104,18 @@ class UserGroupService implements IService {
      * @since  2024-03-29
      */
     public function updateUserGroup(int $id, string $groupName, string $description) : UserGroup {
-        $user_group = $this->userGroupDao->getById($id);
-        $user_group->setGroupName($groupName);
-        $user_group->setDescription($description);
-        return $this->userGroupDao->update($user_group);
+        if (empty($groupName) || empty($description)) {
+            throw new ValidationException("Group name and description cannot be empty.");
+        }
+        
+        try {
+            $user_group = $this->userGroupDao->getById($id);
+            $user_group->setGroupName($groupName);
+            $user_group->setDescription($description);
+            return $this->userGroupDao->update($user_group);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error updating user group: " . $e->getMessage());
+        }
     }
     
     /**
@@ -106,7 +130,11 @@ class UserGroupService implements IService {
      * @since  2024-03-29
      */
     public function deleteUserGroup(int $id, bool $hardDelete = false) : void {
-        $this->userGroupDao->deleteById($id, $hardDelete);
+        try {
+            $this->userGroupDao->deleteById($id, $hardDelete);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Failed to delete user group: " . $e->getMessage());
+        }
     }
     
     /**
@@ -120,14 +148,12 @@ class UserGroupService implements IService {
      * @since  2024-04-11
      */
     public function isGroupNameTaken(string $groupName, int $excludeGroupId = null): bool {
-        return $this->userGroupDao->isGroupNameTaken($groupName, $excludeGroupId);
+        try{
+            return $this->userGroupDao->isGroupNameTaken($groupName, $excludeGroupId);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error checking if group name is taken: " . $e->getMessage());
+            
+        }
     }
     
-    
-    //resume for me:(same for user and permission)
-    //getAllUserGroups() retrieves all user groups, option to include is_deleted groups.
-    //getUserGroupById() fetchs a specific user group by ID.
-    //createUserGroup() creates a new user group with name and description.
-    //updateUserGroup() updates the details of an user group.
-    //deleteUserGroup() deletes a user group by ID, with an option for hard or soft delete.
 }

@@ -34,8 +34,44 @@ $application->getRouter()->addRoute(new CallableRoute("/api/doLogin",
 $application->getRouter()->addRoute(new CallableRoute("/api/logout",
                                                       [\Project\Controllers\LoginController::class, 'dologout']));
 
-// Routes for the User, UserGroup, and Permissions forms
+
 $application->getRouter()->addRoute(new WebpageRoute("/userForm", "Project/userForm.php"));
+$application->getRouter()->addRoute(new CallableRoute("/api/create_user", function () {
+    $controller = new \Project\Controllers\UserController();
+    $controller->post();
+}));
+
+
+$application->getRouter()->addRoute(new CallableRoute("/api/update_user", function () {
+    $controller = new \Project\Controllers\UserController();
+    $controller->put();
+}));
+
+$application->getRouter()->addRoute(new CallableRoute("/api/delete_user", function () {
+    $controller = new \Project\Controllers\UserController();
+    $controller->delete();
+}));
+
+$application->getRouter()->addRoute(new CallableRoute("/api/search_user", function () {
+    $controller = new \Project\Controllers\UserController();
+    $controller->get();
+}));
+
+$application->getRouter()->addRoute(new CallableRoute("/api/get_user_ids", function() {
+    $controller = new \Project\Controllers\UserController();
+    $controller->getUserIds();
+}));
+
+$application->getRouter()->addRoute(new CallableRoute("/api/get_user_names", function() {
+    $controller = new \Project\Controllers\UserController();
+    $controller->getUserNames();
+}));
+
+
+
+
+
+
 $application->getRouter()->addRoute(new WebpageRoute("/userGroupForm", "Project/groupForm.php"));
 $application->getRouter()->addRoute(new WebpageRoute("/permissionsForm", "Project/permissionForm.php"));
 

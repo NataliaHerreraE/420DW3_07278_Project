@@ -331,4 +331,33 @@ class UserDao implements IDAO {
             return null;
         }
     }
+    
+    /**
+     * TODO: Function documentation fetchAllUserIds
+     *
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-03
+     */
+    public function fetchAllUserIds() : array {
+        $sql = "SELECT user_id FROM users";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
+    /**
+     * TODO: Function documentation fetchAllUserNames
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-03
+     */
+    public function fetchAllUserNames() : array {
+        $sql = "SELECT username FROM users";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
 }

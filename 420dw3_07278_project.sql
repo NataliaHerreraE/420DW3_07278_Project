@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-04-2024 a las 20:07:52
+-- Tiempo de generación: 03-05-2024 a las 18:53:57
 -- Versión del servidor: 10.4.28-MariaDB
 -- Versión de PHP: 8.2.4
 
@@ -31,14 +31,16 @@ USE `420dw3_07278_project`;
 --
 
 DROP TABLE IF EXISTS `permissions`;
-CREATE TABLE `permissions` (
-  `permission_id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `permission_id` int(11) NOT NULL AUTO_INCREMENT,
   `permission_key` varchar(30) NOT NULL,
   `name` varchar(30) DEFAULT NULL,
   `description` varchar(70) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`permission_id`),
+  UNIQUE KEY `permission_key` (`permission_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `permissions`
@@ -66,14 +68,16 @@ INSERT INTO `permissions` (`permission_id`, `permission_key`, `name`, `descripti
 --
 
 DROP TABLE IF EXISTS `usergroups`;
-CREATE TABLE `usergroups` (
-  `group_id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `usergroups` (
+  `group_id` int(11) NOT NULL AUTO_INCREMENT,
   `group_name` varchar(20) NOT NULL,
   `description` varchar(70) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_deleted` tinyint(1) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `is_deleted` tinyint(1) DEFAULT 0,
+  PRIMARY KEY (`group_id`),
+  UNIQUE KEY `group_name` (`group_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `usergroups`
@@ -93,24 +97,27 @@ INSERT INTO `usergroups` (`group_id`, `group_name`, `description`, `created_at`,
 --
 
 DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `users` (
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(30) NOT NULL,
-  `user_password` varchar(25) NOT NULL,
+  `user_password` varchar(85) NOT NULL,
   `email` varchar(30) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_deleted` tinyint(1) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `is_deleted` tinyint(1) DEFAULT 0,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `users`
 --
 
 INSERT INTO `users` (`user_id`, `username`, `user_password`, `email`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 'salem', 'pass123', 'salem@email.com', '2024-04-28 06:04:19', '2024-04-28 06:04:19', 0),
-(2, 'tintin', 'pass123', 'tintin@email.com', '2024-04-28 06:04:19', '2024-04-28 06:04:19', 0),
-(3, 'mjane', 'pass123', 'mjane@email.com', '2024-04-28 06:04:19', '2024-04-28 06:04:19', 0);
+(1, 'salem', '$2y$10$dIq/JhlTdgEypTUVY7cvY.tRmYVnMKuUbVaSmaz9jJV4xAMXXKFRm', 'salem@email.com', '2024-04-28 02:04:19', '2024-04-29 00:37:29', 0),
+(2, 'tintin', '$2y$10$dIq/JhlTdgEypTUVY7cvY.tRmYVnMKuUbVaSmaz9jJV4xAMXXKFRm', 'tintin@email.com', '2024-04-28 02:04:19', '2024-04-29 00:37:29', 0),
+(3, 'mjane', '$2y$10$dIq/JhlTdgEypTUVY7cvY.tRmYVnMKuUbVaSmaz9jJV4xAMXXKFRm', 'mjane@email.com', '2024-04-28 02:04:19', '2024-04-29 00:37:29', 0);
 
 -- --------------------------------------------------------
 
@@ -119,9 +126,11 @@ INSERT INTO `users` (`user_id`, `username`, `user_password`, `email`, `created_a
 --
 
 DROP TABLE IF EXISTS `user_group_permissions`;
-CREATE TABLE `user_group_permissions` (
+CREATE TABLE IF NOT EXISTS `user_group_permissions` (
   `user_group_id` int(11) NOT NULL,
-  `permission_id` int(11) NOT NULL
+  `permission_id` int(11) NOT NULL,
+  PRIMARY KEY (`user_group_id`,`permission_id`),
+  KEY `permission_id` (`permission_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -148,9 +157,11 @@ INSERT INTO `user_group_permissions` (`user_group_id`, `permission_id`) VALUES
 --
 
 DROP TABLE IF EXISTS `user_permissions`;
-CREATE TABLE `user_permissions` (
+CREATE TABLE IF NOT EXISTS `user_permissions` (
   `user_id` int(11) NOT NULL,
-  `permission_id` int(11) NOT NULL
+  `permission_id` int(11) NOT NULL,
+  PRIMARY KEY (`user_id`,`permission_id`),
+  KEY `permission_id` (`permission_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -172,9 +183,11 @@ INSERT INTO `user_permissions` (`user_id`, `permission_id`) VALUES
 --
 
 DROP TABLE IF EXISTS `user_usergroup`;
-CREATE TABLE `user_usergroup` (
+CREATE TABLE IF NOT EXISTS `user_usergroup` (
   `user_id` int(11) NOT NULL,
-  `user_group_id` int(11) NOT NULL
+  `user_group_id` int(11) NOT NULL,
+  PRIMARY KEY (`user_id`,`user_group_id`),
+  KEY `user_group_id` (`user_group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -183,77 +196,12 @@ CREATE TABLE `user_usergroup` (
 
 INSERT INTO `user_usergroup` (`user_id`, `user_group_id`) VALUES
 (1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
 (2, 2),
 (3, 3);
-
---
--- Índices para tablas volcadas
---
-
---
--- Indices de la tabla `permissions`
---
-ALTER TABLE `permissions`
-  ADD PRIMARY KEY (`permission_id`),
-  ADD UNIQUE KEY `permission_key` (`permission_key`);
-
---
--- Indices de la tabla `usergroups`
---
-ALTER TABLE `usergroups`
-  ADD PRIMARY KEY (`group_id`),
-  ADD UNIQUE KEY `group_name` (`group_name`);
-
---
--- Indices de la tabla `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`user_id`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
--- Indices de la tabla `user_group_permissions`
---
-ALTER TABLE `user_group_permissions`
-  ADD PRIMARY KEY (`user_group_id`,`permission_id`),
-  ADD KEY `permission_id` (`permission_id`);
-
---
--- Indices de la tabla `user_permissions`
---
-ALTER TABLE `user_permissions`
-  ADD PRIMARY KEY (`user_id`,`permission_id`),
-  ADD KEY `permission_id` (`permission_id`);
-
---
--- Indices de la tabla `user_usergroup`
---
-ALTER TABLE `user_usergroup`
-  ADD PRIMARY KEY (`user_id`,`user_group_id`),
-  ADD KEY `user_group_id` (`user_group_id`);
-
---
--- AUTO_INCREMENT de las tablas volcadas
---
-
---
--- AUTO_INCREMENT de la tabla `permissions`
---
-ALTER TABLE `permissions`
-  MODIFY `permission_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
-
---
--- AUTO_INCREMENT de la tabla `usergroups`
---
-ALTER TABLE `usergroups`
-  MODIFY `group_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT de la tabla `users`
---
-ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Restricciones para tablas volcadas

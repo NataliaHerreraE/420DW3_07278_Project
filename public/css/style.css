@@ -306,66 +306,64 @@ body {
 
 
 /*Forms CSS*/
+.forms-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: calc(100vh - 4rem); /* Adjusted for header height */
+    padding-top: 4rem; /* Same as header height */
+    background: url('../images/Project/home.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
 
+.container-form {
+    width: 60%;
+    background-color: transparent;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+    border: 2px solid rgba(255, 255, 255, .2);
+    backdrop-filter: blur(20px);
+}
 
-.form-label {
-    display: block;
-    margin-bottom: 5px;
-    color: #666;
+.container-form h1, .container-form h2 {
+    color: #282E44;
+    text-align: center;
+}
+
+.input-form {
+    margin-bottom: 1rem;
 }
 
 .form-control {
-    display: block;
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-create, .btn-update, .btn-delete, .btn-search, .btn-display-all {
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.btn {
-    display: inline-block;
-    padding: 10px 20px;
-    margin-right: 10px;
+    margin-top: 10px;
+    background-color: #DC4049;
+    color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    color: #fff;
-    background-color: #DC4049;
 }
 
-.btn:hover {
-    opacity: 0.9;
+.btn-create:hover, .btn-update:hover, .btn-delete:hover, .btn-search:hover, .btn-display-all:hover {
+    background-color: #282E44;
 }
 
-.btn-danger {
-    background-color: #DC4049;
+.row {
+    display: flex;
+    justify-content: space-between;
 }
 
-.btn-danger:hover {
-    background-color: #DC4049;
-}
-
-.btn-info {
-    background-color: #DC4049;
-}
-
-.btn-info:hover {
-    background-color: #DC4049;
-}
-
-.btn-secondary {
-    background-color: #DC4049;
-}
-
-.btn-secondary:hover {
-    background-color: #DC4049;
-}
-
-.btn-primary {
-    background-color: #DC4049;
-}
-
-.btn-primary:hover {
-    background-color: #DC4049;
+.col1, .col2 {
+    width: 48%; /* Slightly less than half to fit margins */
 }
