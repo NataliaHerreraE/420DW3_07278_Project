@@ -88,10 +88,8 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
         </div>
         <div class="col2">
             <h2>User Search and Display</h2>
-            <!-- Combobox for User Name selection -->
             <label for="userIdSelect">Select User to Search:</label>
             <select class="form-control" id="userIdSelect">
-                <!-- Options will be populated here using jQuery -->
             </select>
             <button type="button" class="btn-search" onclick="searchByUserName()">Search by User Name</button>
             <button type="button" class="btn-allUser" onclick="fetchAllUsers()">Display All Users</button>

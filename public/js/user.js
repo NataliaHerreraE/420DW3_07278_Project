@@ -13,7 +13,7 @@ function createUser() {
                data: JSON.stringify(userData),
                success: function(response) {
                    alert('User created successfully!');
-                   resetForm(); // Optionally reset form fields here
+                   resetForm();
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
@@ -33,7 +33,7 @@ function updateUser() {
     
     $.ajax({
                url: `${baseUrl}/api/update_user`,
-               type: 'PUT', // Assuming your API supports PUT for update
+               type: 'PUT', //
                contentType: 'application/json',
                data: JSON.stringify(userData),
                success: function(response) {
@@ -52,7 +52,7 @@ function deleteUser() {
     
     $.ajax({
                url: `${baseUrl}/api/delete_user`,
-               type: 'DELETE', // Assuming your API supports DELETE for removal
+               type: 'DELETE',
                data: JSON.stringify({ id: userId }),
                contentType: 'application/json',
                success: function(response) {
@@ -89,8 +89,7 @@ function fetchAllUsers() {
                url: `${baseUrl}/api/get_all_users`,
                type: 'GET',
                success: function(response) {
-                   console.log(response); // Log response for debugging
-                   // Update UI with user list
+                   console.log(response); // delete lateeeeeer
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
@@ -104,7 +103,6 @@ function resetForm() {
     $('#userCrudForm').find('input[type=text], input[type=password], input[type=email]').val('');
 }
 
-// Initialize and bind events on document ready
 $(document).ready(function () {
     fetchAllUsers(); // Fetch user IDs on load
 });
@@ -124,7 +122,6 @@ $(document).ready(function () {
     
 }*/
 
-// Function to fetch user names
 function fetchUserNames() {
     $.get(`${baseUrl}/api/get_user_names`, data => {
         var select = $('#userIdSelect');

@@ -362,6 +362,6 @@ class UserService implements IService {
      * @since  2024-05-03
      */
     public function getAllUserNames() : array {
-        return $this->userDao->fetchAllUserNames(); // Ensure this method is implemented in UserDao
+        return $this->userDao->fetchAllUserNames();
     }
 }
