@@ -16,6 +16,7 @@ declare(strict_types=1);
 const WEB_DIRECTORY_SEPARATOR = "/";
 const NAMESPACE_PATH_SEPARATOR = "/";
 const DB_DATETIME_FORMAT = "Y-m-d H:i:s.u";
+const DB_TIMESTAMP_FORMAT = "Y-m-d H:i:s";
 const HTML_DATETIME_FORMAT = "Y-m-d\TH:i:s.v";
 
 

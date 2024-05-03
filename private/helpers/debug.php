@@ -178,6 +178,7 @@ class Debug {
             header("Content-Type: application/json;chrset=UTF-8");
             $array = [
                 "error" => true,
+                "success" => false,
                 "exception" => self::exceptionToArray($thrown),
                 "stacktrace" => $thrown->getTraceAsString()
             ];

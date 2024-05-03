@@ -49,13 +49,19 @@ class Application {
             \Debug::logException($request_exception);
             // Respond with the HTTP status code associated with the exception
             http_response_code($request_exception->getHttpResponseCode());
+            \Debug::outputException($request_exception);
+            /*
             die($request_exception->getMessage()); //  return the error message
+            */
         } catch (\Exception $other_exception) {
             // Log unexpected exceptions for debugging purposes
             \Debug::logException($other_exception);
+            \Debug::outputException($other_exception);
+            /*
             // Respond with a generic 500 Internal Server Error
             http_response_code(500);
             die('An unexpected error occurred.'); // error message for the client
+            */
         }
     }
     
