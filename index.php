@@ -39,28 +39,6 @@ $application->getRouter()->addRoute(new CallableRoute("/api/logout",
 $application->getRouter()->addRoute(new WebpageRoute("/userForm", "Project/userForm.php"));
 
 /*
-$application->getRouter()->addRoute(new CallableRoute("/api/create_user", function () {
-    $controller = new \Project\Controllers\UserController();
-    $controller->post();
-}));
-
-$application->getRouter()->addRoute(new CallableRoute("/api/update_user", function () {
-    $controller = new \Project\Controllers\UserController();
-    $controller->put();
-}));
-
-$application->getRouter()->addRoute(new CallableRoute("/api/delete_user", function () {
-    $controller = new \Project\Controllers\UserController();
-    $controller->delete();
-}));
-
-$application->getRouter()->addRoute(new CallableRoute("/api/search_user", function () {
-    $controller = new \Project\Controllers\UserController();
-    $controller->get();
-}));
-*/
-
-/*
  * This single 'APIRoute' route will handle the 4 base operations for users. It will replace your
  * individual callable routes commented above.
  *
@@ -70,18 +48,12 @@ $application->getRouter()->addRoute(new CallableRoute("/api/search_user", functi
  * - delete a user (URL /api/manage_user with method 'DELETE' will call function delete() of UserController)
  */
 $application->getRouter()->addRoute(new APIRoute("/api/manage_user", UserController::class));
+$application->getRouter()->addRoute(new APIRoute("/api/get_deleted_users", UserController::class));
 
-$application->getRouter()->addRoute(new CallableRoute("/api/get_user_ids", function() {
+/*$application->getRouter()->addRoute(new CallableRoute("/api/get_user_ids", function () {
     $controller = new \Project\Controllers\UserController();
     $controller->getUserIds();
-}));
-
-/*
-$application->getRouter()->addRoute(new CallableRoute("/api/get_user_names", function() {
-    $controller = new \Project\Controllers\UserController();
-    $controller->getUserNames();
-}));
-*/
+}));*/
 
 $application->getRouter()->addRoute(new CallableRoute("/api/get_all_users", [UserController::class, "getAllUsers"]));
 
@@ -89,12 +61,7 @@ $application->getRouter()->addRoute(new CallableRoute("/api/get_all_users", [Use
 
 
 
-
-
-$application->getRouter()->addRoute(new WebpageRoute("/userGroupForm", "Project/groupForm.php"));
-$application->getRouter()->addRoute(new WebpageRoute("/permissionsForm", "Project/permissionForm.php"));
-
-
+$application->getRouter()->addRoute(new WebpageRoute("/groupForm", "Project/groupForm.php"));
 
 // Run the application
 $application->run();

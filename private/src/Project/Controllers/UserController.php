@@ -104,8 +104,15 @@ class UserController extends AbstractController {
         $data = $this->getJsonData();
         
         $this->validateUserData($data);
-        $updated_user = $this->userService->updateUser($data['user_id'], $data['username'], $data['password'], $data['email']);
-        echo $this->jsonResponse(['message' => 'User updated successfully', 'userId' => $updated_user->getId(), 'user' => $updated_user->toArray()]);
+        /* $updated_user = $this->userService->updateUser($data['user_id'], $data['username'], $data['password'], $data['email']);
+         echo $this->jsonResponse(['message' => 'User updated successfully', 'userId' => $updated_user->getId(), 'user' => $updated_user->toArray()]);
+         */
+        
+        if (!isset($data['user_id']) || !is_numeric($data['user_id'])) {
+            throw new ValidationException("User ID is required and must be an integer.");
+        }
+        
+        $this->userService->updateUser((int) $data['user_id'], $data['username'], $data['password'], $data['email']);
         
     }
     
@@ -124,12 +131,11 @@ class UserController extends AbstractController {
         $this->requireLogin();
         $data = $this->getJsonData();
         
-        if (empty($data['user_id']) || !is_numeric($data['user_id'])) {
+        if (!isset($data['user_id']) || !is_numeric($data['user_id'])) {
             throw new RequestException("Bad request: User ID is missing or invalid.", 400);
         }
         
-        $user_id = (int) $data['user_id'];
-        $this->userService->deleteUser($user_id);
+        $this->userService->deleteUser((int) $data['user_id']);
         echo $this->jsonResponse(['message' => 'User deleted successfully'], 204);
     }
     
@@ -319,6 +325,14 @@ class UserController extends AbstractController {
         }
     }
     
+    /**
+     * TODO: Function documentation getAllUsers
+     *
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
     public static function getAllUsers() : void {
         header('Content-Type: application/json');
         try {
@@ -327,11 +341,31 @@ class UserController extends AbstractController {
             $usersArray = [];
             foreach ($users as $user) {
                 if ($user instanceof User) {
-                    $usersArray[$user->getId()] = $user->toArray();
+                    /*$usersArray[$user->getId()] = $user->toArray();*/
+                    $usersArray[] = $user->toArray();
                     
                 }
             }
             echo json_encode(['success' => true, 'data' => $usersArray]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * TODO: Function documentation getDeletedUsers
+     *
+     * @return void
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function getDeletedUsers() : void {
+        header('Content-Type: application/json');
+        try {
+            $users = $this->userService->getDeletedUsers();
+            echo json_encode(['success' => true, 'data' => $users]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);

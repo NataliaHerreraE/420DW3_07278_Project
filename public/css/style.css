@@ -340,11 +340,11 @@ body {
 .form-control {
     width: 100%;
     padding: 0.8rem;
-    border: 1px solid #ccc;
+    border: 1px solid #F8CACC;
     border-radius: 4px;
 }
 
-.btn-create, .btn-update, .btn-delete, .btn-search, .btn-display-all {
+.btn-create, .btn-update, .btn-delete{
     width: 100%;
     padding: 10px;
     margin-top: 10px;
@@ -355,11 +355,41 @@ body {
     cursor: pointer;
 }
 
-.btn-create:hover, .btn-update:hover, .btn-delete:hover, .btn-search:hover, .btn-display-all:hover {
+.btn-create:hover, .btn-update:hover, .btn-delete:hover{
     background-color: #282E44;
 }
 
-.row {
+.btn-search, .btn-allUser {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #553547;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-search:hover, .btn-allUser:hover {
+    background-color: #282E44;
+}
+
+.btn-remove-from-group, .btn-add-to-group {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #282E44;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-remove-from-group:hover, .btn-add-to-group:hover {
+    background-color: #DC4049;
+}
+
+.row, .row2 {
     display: flex;
     justify-content: space-between;
 }

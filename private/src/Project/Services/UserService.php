@@ -127,7 +127,7 @@ class UserService implements IService {
      */
     public function updateUser(int $id, string $username, string $password = null, string $email) : User {
         try {
-            // Check if user exists
+            echo "updateUser method called\n";
             $user = $this->userDao->getById($id);
             if (!$user) {
                 throw new ValidationException("User not found.");
@@ -353,15 +353,13 @@ class UserService implements IService {
         }
     }
     
-    /**
-     * TODO: Function documentation getAllUserNames
-     *
-     * @return array
-     *
-     * @author Natalia Herrera.
-     * @since  2024-05-03
-     */
-    public function getAllUserNames() : array {
-        return $this->userDao->fetchAllUserNames();
+    public function getDeletedUsers() : array {
+        try{
+            return $this->userDao->getDeletedUsers();
+        }catch (\Exception $e){
+            error_log('Failed to fetch deleted users: ' . $e->getMessage());
+            throw new \Exception("Database error occurred: " . $e->getMessage());
+        }
     }
+    
 }

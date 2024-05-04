@@ -251,7 +251,7 @@ class User extends AbstractDTO {
      * @author Natalia Herrera.
      * @since  2024-03-24
      */
-    public function getIsDeleted(): bool {
+    public function getIsDeleted() : bool {
         return $this->isDeleted;
     }
     
@@ -369,10 +369,5 @@ class User extends AbstractDTO {
         
         return true;
     }
-/*
-    public function getId() : int {
-        return $this->user_id ?? 0; // Return 0 or some other default value when user_id is null
-    }*/
-    
     
 }

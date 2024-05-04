@@ -105,6 +105,7 @@ class UserDao implements IDAO {
      * @since  2024-03-17
      */
     public function update(object $dto) : User {
+        echo "Update method called\n";
         if (!($dto instanceof User)) {
             throw new RuntimeException("Passed object is not an instance of User.");
         }
@@ -116,12 +117,23 @@ class UserDao implements IDAO {
         $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
         $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
         $statement->bindValue(":user_id", $dto->getId(), PDO::PARAM_INT);
+        
+        echo "Executing query: " . self::UPDATE_QUERY . "\n";
+        echo "With parameters: username = " . $dto->getUsername() . ", password = " . $dto->getPassword() . ", email = " . $dto->getEmail() . ", user_id = " . $dto->getId() . "\n";
+        
         $statement->execute();
         
-        // fetch the user to ensure the update was successful
+        $errorInfo = $statement->errorInfo();
+        if ($errorInfo[0] !== '00000') {
+            echo "SQLSTATE error code: " . $errorInfo[0] . "\n";
+            echo "Driver-specific error code: " . $errorInfo[1] . "\n";
+            echo "Driver-specific error message: " . $errorInfo[2] . "\n";
+        } else {
+            echo "Query executed successfully\n";
+        }
+        
         $updated_user = $this->getById($dto->getId());
         if ($updated_user === null) {
-            // in case where the user could not be retrieved after updating
             throw new RuntimeException("Unable to retrieve the user after update. User ID: " . $dto->getId());
         }
         
@@ -359,5 +371,18 @@ class UserDao implements IDAO {
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
+    /**
+     * TODO: Function documentation getDeletedUsers
+     * @return mixed
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function getDeletedUsers() : array {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE is_deleted = 1");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
