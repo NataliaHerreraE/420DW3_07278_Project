@@ -112,6 +112,30 @@ $canSearchUserGroups = in_array('SEARCH_USERGROUPS', $permissions);
         </div>
     </div>
     <br>
+    <div class="col3">
+        <h2>Deleted Users</h2>
+        <button type="button" class="btn-view-deleted" onclick="fetchDeletedUsers()">Display Deleted Users</button>
+        <div id="deletedUsersDisplay">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                </tr>
+                </thead>
+                <tbody id="deletedUsersBody">
+                <!-- Deleted user rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+        <label for="groupIdSelectDelete">Select Group to Delete from DB:</label>
+        <select class="form-control" id="groupIdSelectDelete">
+        </select>
+        <button type="button" class="btn-hardDelete" onclick="hardDeleteGroup()">Delete from de Database</button>
+    </div>
+</div>
+<br>
 </div>
 
 <!--<div>

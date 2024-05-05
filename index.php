@@ -12,6 +12,7 @@ require_once 'private/helpers/autoloader.php';
 require_once "private/helpers/init.php";
 
 use Project\Application;
+use Project\Controllers\PermissionController;
 use Project\Controllers\UserGroupController;
 use Teacher\GivenCode\Domain\APIRoute;
 use Teacher\GivenCode\Domain\CallableRoute;
@@ -68,6 +69,11 @@ $application->getRouter()->addRoute(new APIRoute("/api/manage_group", UserGroupC
 $application->getRouter()->addRoute(new CallableRoute("/api/get_all_groups", [UserGroupController::class, "getAllGroups"]));
 $application->getRouter()->addRoute(new CallableRoute("/api/getDeletedGroups",
                                                       [UserGroupController::class, "getDeletedGroup"]));
+
+$application->getRouter()->addRoute(new WebpageRoute("/permissionForm", "Project/permissionForm.php"));
+$application->getRouter()->addRoute(new APIRoute("/api/manage_permission", PermissionController::class));
+$application->getRouter()->addRoute(new CallableRoute("/api/get_all_permissions", [PermissionController::class, "getAllPermissions"]));
+
 
 // Run the application
 $application->run();

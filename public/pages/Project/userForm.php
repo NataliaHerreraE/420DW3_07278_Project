@@ -126,6 +126,11 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
                         </tbody>
                     </table>
                 </div>
+                <br>
+                <label for="userIdSelectDelete">Select User to Delete from DB:</label>
+                <select class="form-control" id="userIdSelectDelete">
+                </select>
+                <button type="button" class="btn-hardDelete" onclick="hardDeleteUser()">Delete from de Database</button>
             </div>
         </div>
     </div>

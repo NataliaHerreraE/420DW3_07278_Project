@@ -39,6 +39,7 @@ function createUser() {
                success: function(response) {
                    alert('User created successfully!');
                    resetForm();
+                   fetchUserIds();
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
@@ -94,6 +95,7 @@ function updateUser() {
                    contentType: 'application/json',
                    success: function(response) {
                        alert('User updated successfully!');
+                       fetchAllUsers();
                    },
                    error: function(xhr) {
                        console.error('Error:', xhr.responseText);
@@ -203,7 +205,6 @@ function searchByUserId() {
 
 function populateUserForm(user) {
     console.log("Populating form with user:", user);
-    $('#userIdInput').val(user.id);
     $('#usernameInput').val(user.username);
     $('#passwordInput').val(user.password);
     $('#emailInput').val(user.email);

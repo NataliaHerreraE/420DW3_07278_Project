@@ -14,6 +14,8 @@ namespace Project\Services;
 use Exception;
 use PDOException;
 use Project\DAOs\PermissionDao;
+use Project\DAOs\UserDao;
+use Project\DAOs\UserGroupDao;
 use Project\DTOs\Permission;
 use Teacher\GivenCode\Abstracts\IService;
 use Teacher\GivenCode\Exceptions\RuntimeException;
@@ -27,6 +29,8 @@ class PermissionService implements IService {
     
     public function __construct() {
         $this->permissionDao = new PermissionDAO();
+        $this->userDao = new UserDao();
+        $this->userGroupDao = new UserGroupDao();
     }
     
     /**

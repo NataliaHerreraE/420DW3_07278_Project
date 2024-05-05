@@ -9,6 +9,8 @@
 
 namespace Project\Controllers;
 
+use Project\DTOs\Permission;
+use Project\Services\LoginService;
 use Project\Services\PermissionService;
 use Teacher\GivenCode\Abstracts\AbstractController;
 use Teacher\GivenCode\Exceptions\RequestException;
@@ -28,45 +30,30 @@ class PermissionController extends AbstractController {
     
     /**
      * TODO: Function documentation get
+     *
      * @return void
      *
+     * @throws RuntimeException
      * @author Natalia Herrera.
      * @since  2024-03-30
      */
     public function get() : void {
-        ob_start();
+        $this->requireLogin();
         
-        $permissionId = $_REQUEST['permissionId'] ?? null;
-        
-        try {
-            if ($permissionId) {
-                if (!is_numeric($permissionId)) {
-                    throw new RequestException("Bad request: parameter [permissionId] value is not numeric.", 400);
-                }
+        if (isset($_REQUEST["permission_id"]) && is_numeric($_REQUEST["permission_id"])) {
+            $permission_id = (int) $_REQUEST["permission_id"];
+            try {
+                $permission = $this->permissionService->getPermissionById($permission_id);
+                echo $this->jsonResponse($permission->toArray());
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo $this->jsonResponse(['error' => $e->getMessage()], 500);
                 
-                $permission = $this->permissionService->getPermissionById((int) $permissionId);
-                
-                if (!$permission) {
-                    throw new RequestException("Permission not found.", 404);
-                }
-                
-                header("Content-Type: application/json;charset=UTF-8");
-                echo json_encode($permission);
-            } else {
-                // No specific ID - return all permissions??
-                $permissions = $this->permissionService->getAllPermissions();
-                header("Content-Type: application/json;charset=UTF-8");
-                echo json_encode($permissions);
             }
-        } catch (RequestException $exception) {
-            http_response_code($exception->getHttpResponseCode());
-            echo json_encode(['error' => $exception->getMessage()]);
-        } catch (\Exception $exception) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Internal Server Error']);
+        } else {
+            $permissions = $this->permissionService->getAllPermissions();
+            echo $this->jsonResponse($permissions);
         }
-        
-        ob_end_flush();
     }
     
     /**
@@ -79,29 +66,17 @@ class PermissionController extends AbstractController {
      * @since  2024-03-30
      */
     public function post() : void {
-        ob_start();
-        
-        $data = $_REQUEST; // For form data
-        
-        if (!$this->validatePermissionData($data)) {
-            throw new RequestException("Bad request: Missing or invalid fields.", 400);
+        $this->requireLogin();
+        $data = $this->getJsonData();
+        try{
+            $created_permission = $this->permissionService->createPermission($data['permissionKey'], $data['name'],
+                                                                             $data['description'] ?? '');
+            echo $this->jsonResponse(['success' => true, 'message' => 'Permission created successfully', 'permissionId' => $created_permission->getId(), 'permission' => $created_permission->toArray()]);
+            
+        } catch (ValidationException $ve) {
+            http_response_code(400);
+            echo $this->jsonResponse(['success' => false, 'message' => $ve->getMessage()]);
         }
-        
-        try {
-            $newPermission =
-                $this->permissionService->createPermission($data['permissionKey'], $data['name'], $data['description']);
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode([
-                                 'message' => 'Permission created successfully',
-                                 'permissionId' => $newPermission->getId()
-                             ]);
-        } catch (ValidationException $exception) {
-            throw new RequestException("Validation error: " . $exception->getMessage(), 422);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
-        }
-        
-        ob_end_flush();
     }
     
     /**
@@ -114,35 +89,17 @@ class PermissionController extends AbstractController {
      * @since  2024-03-30
      */
     public function put() : void {
-        ob_start();
+        $this->requireLogin();
+        $data = $this->getJsonData();
         
-        $data = $_REQUEST;
-        
-        if (empty($data['permissionId'])) {
-            throw new RequestException("Permission ID is required for updating.", 400);
+        $this->validateUserData($data);
+        if (!isset($data['permission_id']) || !is_numeric($data['permission_id'])) {
+            throw new ValidationException("Permission ID is required and must be an integer.");
         }
         
-        $permissionId = (int) $data['permissionId'];
+        $this->permissionService->updatePermission((int) $data['permission_id'], $data['permissionKey'], $data['name'], $data['description'] ?? '');
+        echo $this->jsonResponse(['success' => true, 'message' => 'Permission updated successfully']);
         
-        if (!$this->validatePermissionData($data)) {
-            throw new RequestException("Bad request: Missing or invalid fields.", 400);
-        }
-        
-        try {
-            $updated_permission = $this->permissionService->updatePermission($permissionId, $data['permissionKey'], $data['name'], $data['description'] ?? '');
-        } catch (ValidationException $exception) {
-            throw new RequestException("Validation error: " . $exception->getMessage(), 422);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
-        }
-        
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode([
-                             'message' => 'Permission updated successfully',
-                             'permissionId' => $updated_permission->getId()
-                         ]);
-        
-        ob_end_flush();
     }
     
     /**
@@ -155,34 +112,16 @@ class PermissionController extends AbstractController {
      * @since  2024-03-30
      */
     public function delete() : void {
-        ob_start();
-        $permissionId = $_REQUEST['permissionId'] ?? null;
+        $this->requireLogin();
+        $data = $this->getJsonData();
         
-        if (is_null($permissionId) || !is_numeric($permissionId)) {
+        if (!isset($data['permission_id']) || !is_numeric($data['permission_id'])) {
             throw new RequestException("Bad request: Permission ID is missing or invalid.", 400);
         }
         
-        $permissionId = (int) $permissionId;
+        $this->permissionService->deletePermission((int) $data['permission_id']);
+        echo $this->jsonResponse(['message' => 'User deleted successfully'], 204);
         
-        try {
-            $permission = $this->permissionService->getPermissionById($permissionId);
-            if (!$permission) {
-                throw new RequestException("Permission not found.", 404);
-            }
-            
-            $hardDelete = isset($_REQUEST['hardDelete']) && ($_REQUEST['hardDelete'] === 'true');
-            
-            $this->permissionService->deletePermission($permissionId, $hardDelete);
-            
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode(['message' => 'Permission deleted successfully']);
-        } catch (RequestException $exception) {
-            http_response_code($exception->getHttpResponseCode());
-            echo json_encode(['error' => $exception->getMessage()]);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
-        }
-        ob_end_flush();
     }
     
     private function validatePermissionData($data) : bool {
@@ -201,6 +140,54 @@ class PermissionController extends AbstractController {
         }
         
         return true;
+    }
+    
+    private function requireLogin() : void {
+        if (!LoginService::isLoggedIn()) {
+            throw new RequestException("Not authorized.", 401);
+        }
+    }
+    
+    private function getJsonData() {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new RequestException("Invalid JSON data received.", 400);
+        }
+        return $data;
+    }
+    
+    private function jsonResponse($data, $statusCode = 200) : void {
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+        echo json_encode($data);
+    }
+    
+    /**
+     * TODO: Function documentation getAllPermissions
+     *
+     * @return void
+     *
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-05
+     */
+    public static function getAllPermissions() : void {
+        header('Content-Type: application/json');
+        try {
+            $permissionService = new PermissionService();
+            $permissions = $permissionService->getAllPermissions();
+            $permissionArray = [];
+            foreach ($permissions as $permission) {
+                if ($permission instanceof Permission) {
+                    $permissionArray[] = $permission->toArray();
+                }
+            }
+            echo json_encode(['success' => true, 'data' => $permissionArray]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
     
 }

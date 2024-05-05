@@ -323,16 +323,21 @@ body {
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-top: 2rem;
+    margin-top: 8rem;
     border: 2px solid rgba(255, 255, 255, .2);
     backdrop-filter: blur(20px);
 }
 
-.container-form h1, .container-form h2 {
-    color: #282E44;
+.container-form h1 {
+    color: #DC4049;
+    font-weight: 600;
     text-align: center;
 }
 
+.container-form h2 {
+    color: #282E44;
+    text-align: center;
+}
 .input-form {
     margin-bottom: 1rem;
 }
@@ -374,7 +379,7 @@ body {
     background-color: #282E44;
 }
 
-.btn-remove-from-group, .btn-add-to-group {
+.btn-remove-from-group, .btn-add-to-group, .btn-hardDelete {
     width: 100%;
     padding: 10px;
     margin-top: 10px;
@@ -385,7 +390,7 @@ body {
     cursor: pointer;
 }
 
-.btn-remove-from-group:hover, .btn-add-to-group:hover {
+.btn-remove-from-group:hover, .btn-add-to-group, .btn-hardDelete:hover {
     background-color: #DC4049;
 }
 

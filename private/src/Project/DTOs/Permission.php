@@ -295,4 +295,23 @@ class Permission extends AbstractDTO {
     public function getDatabaseTableName() : string {
         return self::TABLE_NAME;
     }
+    
+    /**
+     * TODO: Function documentation toArray
+     *
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-05
+     */
+    public function toArray() : array {
+        return [
+            'permission_id' => $this->getId(),
+            'permission_key' => $this->getPermissionKey(),
+            'name' => $this->getName(),
+            'description' => $this->getDescription(),
+            "createdAt" => empty($this->getCreatedAt()) ? null : $this->getCreatedAt()->format(HTML_DATETIME_FORMAT),
+            "updatedAt" => empty($this->getUpdatedAt()) ? null : $this->getUpdatedAt()->format(HTML_DATETIME_FORMAT)
+        ];
+    }
 }
