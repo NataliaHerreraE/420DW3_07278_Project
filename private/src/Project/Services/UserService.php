@@ -51,7 +51,11 @@ class UserService implements IService {
      * @since  2024-03-29
      */
     public function getAllUsers() : array {
-        return $this->userDao->getAll();
+        try {
+            return $this->userDao->getAll();
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error fetching all users: " . $e->getMessage());
+        }
     }
     
     /**
@@ -65,7 +69,11 @@ class UserService implements IService {
      * @since  2024-03-29
      */
     public function getUserById(int $id) : ?User {
-        return $this->userDao->getById($id);
+        try {
+            return $this->userDao->getById($id);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error fetching user by ID: " . $e->getMessage());
+        }
     }
     
     /**
@@ -353,13 +361,22 @@ class UserService implements IService {
         }
     }
     
+    
+    /**
+     * TODO: Function documentation getDeletedUsers
+     *
+     * @return array
+     *
+     * @throws RuntimeException
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
     public function getDeletedUsers() : array {
-        try{
-            return $this->userDao->getDeletedUsers();
-        }catch (\Exception $e){
-            error_log('Failed to fetch deleted users: ' . $e->getMessage());
-            throw new \Exception("Database error occurred: " . $e->getMessage());
-        }
+        $users = $this->userDao->getDeletedUsers();
+        error_log('Fetched deleted users: ' . print_r($users, true));
+        return array_map(function ($user) {
+            return $user->toArray();
+        }, $users);
     }
     
 }

@@ -29,8 +29,8 @@ class UserGroup extends AbstractDTO {
     
     private string $groupName;
     private string $description;
-    private ?DateTime $createdAt;
-    private ?DateTime $updatedAt;
+    private ?DateTime $createdAt = null;
+    private ?DateTime $updatedAt = null;
     private bool $isDeleted;
     
     public function __construct() {
@@ -70,13 +70,16 @@ class UserGroup extends AbstractDTO {
         $object->setId((int) $dbAssocArray['group_id']);
         $object->setGroupName($dbAssocArray['group_name']);
         $object->setDescription($dbAssocArray['description']);
-        $object->setCreatedAt(
-            DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["created_at"])
-        );
-        $object->setUpdatedAt(
-            DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
-        );
-        $object->setIsDeleted($dbAssocArray['is_deleted']);
+        $createdAt = isset($dbAssocArray["created_at"])
+            ? DateTime::createFromFormat(DB_TIMESTAMP_FORMAT, $dbAssocArray["created_at"])
+            : null;
+        $object->setCreatedAt($createdAt);
+        $updatedAt = isset($dbAssocArray["updated_at"])
+            ? DateTime::createFromFormat(DB_TIMESTAMP_FORMAT, $dbAssocArray["updated_at"])
+            : null;
+        $object->setUpdatedAt($updatedAt);
+        $isDeleted = boolval($dbAssocArray['is_deleted']);
+        $object->setIsDeleted($isDeleted);
         return $object;
     }
     
@@ -285,5 +288,25 @@ class UserGroup extends AbstractDTO {
      */
     public function getDatabaseTableName() : string {
         return self::TABLE_NAME;
+    }
+    
+    /**
+     * TODO: Function documentation toArray
+     *
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-05
+     */
+    public function toArray() : array {
+        return [
+            'group_id' => $this->id,
+            'group_name' => $this->groupName,
+            'description' => $this->description,
+            'is_deleted' => $this->isDeleted,
+            "createdAt" => empty($this->getCreatedAt()) ? null : $this->getCreatedAt()->format(HTML_DATETIME_FORMAT),
+            "updatedAt" => empty($this->getUpdatedAt()) ? null : $this->getUpdatedAt()->format(HTML_DATETIME_FORMAT)
+        
+        ];
     }
 }

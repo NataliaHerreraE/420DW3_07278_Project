@@ -94,6 +94,7 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
             </select>
             <button type="button" class="btn-search" id="userIdSelect" onclick="searchByUserId()">Search by ID</button>
             <button type="button" class="btn-allUser" onclick="fetchAllUsers()">Display All Users</button>
+            <br>
             <div id="allUsersDisplay">
                 <table class="table">
                     <thead>
@@ -129,7 +130,7 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
         </div>
     </div>
     <br>
-<!--    <div class="row2">
+    <div class="row2">
         <div class="col3">
             <h2>Group Membership Management</h2>
             <form id="groupManagementForm">
@@ -141,7 +142,7 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
                 <button type="button" class="btn-remove-from-group" onclick="removeUserFromGroup()">Remove from Group</button>
             </form>
         </div>
-    </div>-->
+    </div>
 </div>
 
 <!--<div>

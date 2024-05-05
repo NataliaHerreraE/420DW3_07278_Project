@@ -359,7 +359,7 @@ body {
     background-color: #282E44;
 }
 
-.btn-search, .btn-allUser {
+.btn-search, .btn-allUser, .btn-allgroups, .btn-view-deleted {
     width: 100%;
     padding: 10px;
     margin-top: 10px;
@@ -370,7 +370,7 @@ body {
     cursor: pointer;
 }
 
-.btn-search:hover, .btn-allUser:hover {
+.btn-search:hover, .btn-allUser, .btn-allgroups, .btn-view-deleted:hover {
     background-color: #282E44;
 }
 

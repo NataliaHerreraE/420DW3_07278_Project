@@ -12,9 +12,13 @@ use Project\Controllers\UserGroupController;
 use Project\Services\UserGroupService;
 use Project\Services\LoginService;
 
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
+
+$groupService = new UserGroupService();
+$groups = $groupService->getAllGroupsId();
 
 $loginService = new LoginService();
 if (!$loginService->isLoggedIn() || !$loginService->hasPermission('LOGIN_ALLOWED')) {
@@ -35,7 +39,7 @@ $canSearchUserGroups = in_array('SEARCH_USERGROUPS', $permissions);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Management</title>
+    <title>Group Management</title>
     <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'bootstrap.min.css' ?>">
     <link rel="stylesheet" href="<?= WEB_CSS_DIR . 'style.css' ?>">
     <script src="<?= WEB_JS_DIR . 'jquery-3.7.1.min.js' ?>"></script>
@@ -62,54 +66,45 @@ $canSearchUserGroups = in_array('SEARCH_USERGROUPS', $permissions);
     <?php require_once 'header.php'; ?>
 </div>
 <div class="container-form">
-    <h1>User Management</h1>
+    <h1>User Group Management</h1>
+    <br>
     <div class="row">
         <div class="col1">
-            <h2>User Operations</h2>
-            <form id="userCrudForm">
-                <!-- User ID input -->
+            <h2>User Group Operations</h2>
+            <form id="groupCrudForm">
+                <!-- groupname input -->
                 <div class="input-form">
-                    <label for="userIdInput" class="form-label">User ID</label>
-                    <input type="text" class="form-control" id="userIdInput" name="userId" placeholder="User ID" readonly>
+                    <label for="groupnameInput" class="form-label">Group Name</label>
+                    <input type="text" class="form-control" id="groupnameInput" name="groupname" placeholder="groupname" required>
                 </div>
-                <!-- Username input -->
+                <!-- description input -->
                 <div class="input-form">
-                    <label for="usernameInput" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="usernameInput" name="username" placeholder="Username" required>
-                </div>
-                <!-- Password input -->
-                <div class="input-form">
-                    <label for="passwordInput" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="passwordInput" name="password" placeholder="Password" required>
-                </div>
-                <!-- Email input -->
-                <div class="input-form">
-                    <label for="emailInput" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="emailInput" name="email" placeholder="Email" required>
+                    <label for="descriptionInput" class="form-label">Description</label>
+                    <input type="description" class="form-control" id="descriptionInput" name="description" placeholder="description" required>
                 </div>
                 <!-- Form buttons -->
-                <button type="button" class="btn-create" onclick="createUser()">Create</button>
-                <button type="button" class="btn-update" onclick="updateUser()">Update</button>
-                <button type="button" class="btn-delete" onclick="deleteUser()">Delete</button>
+                <button type="button" class="btn-create" onclick="createGroup()">Create</button>
+                <button type="button" class="btn-update" onclick="updateGroup()">Update</button>
+                <button type="button" class="btn-delete" onclick="deleteGroup()">Delete</button>
             </form>
         </div>
         <div class="col2">
-            <h2>User Search and Display</h2>
-            <label for="userIdSelect">Select User to Search:</label>
-            <select class="form-control" id="userIdSelect">
+            <h2>Group Search and Display</h2>
+            <label for="groupIdSelect">Select Group to Search:</label>
+            <select class="form-control" id="groupIdSelect">
             </select>
-            <button type="button" class="btn-search" onclick="searchByUserId()">Search by ID</button>
-            <button type="button" class="btn-allUser" onclick="fetchAllUsers()">Display All Users</button>
-            <div id="allUsersDisplay">
+            <button type="button" class="btn-search" onclick="searchByGroupId()">Search by ID</button>
+            <button type="button" class="btn-allgroups" onclick="fetchAllGroups()">Display All Groups</button>
+            <div id="allGroupsBody">
                 <table class="table">
                     <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
+                        <th>UserGroup</th>
+                        <th>Description</th>
                     </tr>
                     </thead>
-                    <tbody id="allUsersBody">
+                    <tbody id="allgroupsBody">
                     <!-- Rows will be dynamically added here -->
                     </tbody>
                 </table>
@@ -117,19 +112,6 @@ $canSearchUserGroups = in_array('SEARCH_USERGROUPS', $permissions);
         </div>
     </div>
     <br>
-    <div class="row2">
-        <div class="col3">
-            <h2>Group Membership Management</h2>
-            <form id="groupManagementForm">
-                <div class="input-form">
-                    <label for="groupIdInput" class="form-label">Group ID</label>
-                    <input type="text" class="form-control" id="groupIdInput" name="groupId" placeholder="Group ID">
-                </div>
-                <button type="button" class="btn-add-to-group" onclick="addUserToGroup()">Add to Group</button>
-                <button type="button" class="btn-remove-from-group" onclick="removeUserFromGroup()">Remove from Group</button>
-            </form>
-        </div>
-    </div>
 </div>
 
 <!--<div>

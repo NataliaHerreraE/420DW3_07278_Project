@@ -39,7 +39,6 @@ function createUser() {
                success: function(response) {
                    alert('User created successfully!');
                    resetForm();
-                   // TODO fill form?
                },
                error: function(xhr) {
                    console.error('Error:', xhr.responseText);
@@ -106,31 +105,24 @@ function updateUser() {
 
 // Function to delete a user
 function deleteUser() {
-    let comboBox = document.getElementById("userIdSelect");
-    let selectedValue = comboBox.value;
-    let selectedId = parseInt(selectedValue, 10); // Ensure it's an integer
-    
-    if (isNaN(selectedId)) {
-        console.error("The selected value is not a valid number.");
-        alert('Invalid user ID.');
-    } else {
-        console.log("The selected ID is: ", selectedId);
-        $.ajax({
-                   url: `${baseUrl}api/manage_user`,
-                   type: 'DELETE',
-                   contentType: 'application/json',
-                   data: JSON.stringify({user_id: selectedId}), // Make sure the key matches the backend expectation
-                   dataType: "json",
-                   success: function(response) {
-                       alert('User deleted successfully!');
-                       resetForm(); // Reset form after deletion
-                   },
-                   error: function(xhr) {
-                       console.error('Error:', xhr.responseText);
-                       alert('Failed to delete user.');
+    $.ajax({
+               url: `${baseUrl}api/get_deleted_users`,
+               type: 'GET',
+               data: {has_deleted: 1},
+               dataType: "json",
+               success: function(response) {
+                   if (response && response.data) {
+                       populateDeletedUsersTable(response.data);
+                   } else {
+                       console.error('Failed to fetch or parse deleted user data:', response);
+                       alert('Failed to fetch deleted users.');
                    }
-               });
-    }
+               },
+               error: function(xhr) {
+                   console.error('Error:', xhr.responseText);
+                   alert('Failed to fetch deleted users.');
+               }
+           });
 }
 
 function fetchUserIds() {
@@ -155,28 +147,28 @@ function fetchUserIds() {
 
 function searchByUserId() {
     let userId = $('#userIdSelect').val();
- /*
-    $.ajax({
-               url: `${baseUrl}api/search_user/${userId}`,
-               type: 'GET',
-               dataType: "json",
-               success: function(response) {
-                   $("#debugContents").html(`<pre>${response.responseText}</pre>`);
-                   $('#searchResults').html(response);
-                   if (Array.isArray(response.data)) {
-                       populateUserTable(response.data);
-                   } else {
-                       console.error('Failed to fetch or parse user data:', response);
-                       alert('Failed to fetch users.');
-                   }
-                   
-               },
-               error: function(xhr) {
-                   console.error('Error:', xhr.responseText);
-                   $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
-                   alert('Failed to search users.');
-               }
-           });*/
+    /*
+       $.ajax({
+                  url: `${baseUrl}api/search_user/${userId}`,
+                  type: 'GET',
+                  dataType: "json",
+                  success: function(response) {
+                      $("#debugContents").html(`<pre>${response.responseText}</pre>`);
+                      $('#searchResults').html(response);
+                      if (Array.isArray(response.data)) {
+                          populateUserTable(response.data);
+                      } else {
+                          console.error('Failed to fetch or parse user data:', response);
+                          alert('Failed to fetch users.');
+                      }
+                      
+                  },
+                  error: function(xhr) {
+                      console.error('Error:', xhr.responseText);
+                      $("#debugContents").html(`<pre>${xhr.responseText}</pre>`);
+                      alert('Failed to search users.');
+                  }
+              });*/
     
     
     $.ajax({
@@ -247,6 +239,7 @@ function fetchAllUsers() {
                }
            });
 }
+
 function populateUserIdSelect(users) {
     var userIdSelect = $('#userIdSelect');
     userIdSelect.empty();  // Clear existing options
@@ -256,25 +249,25 @@ function populateUserIdSelect(users) {
 }
 
 function populateUserTable(users) {
-    console.log("Received users for table:", users); // Make sure this log shows the expected array
+    console.log("Received users for table:", users);
     
     var tableBody = $('#allUsersBody');
-    console.log("Table body found:", tableBody.length); // Check if the table body is found
+    console.log("Table body found:", tableBody.length);
     
     tableBody.empty(); // Clear existing table rows.
     
     users.forEach(user => {
-        console.log("Adding user:", user); // This should log each user object
+        console.log("Adding user:", user);
         
         var row = `<tr>
                      <td>${user.id}</td>
                      <td>${user.username}</td>
                      <td>${user.email}</td>
-                   </tr>`;
+                    </tr>`;
         tableBody.append(row);
     });
     
-    console.log("Table after adding rows:", $('#allUsersBody').html()); // Log the inner HTML to verify rows are added
+    console.log("Table after adding rows:", $('#allUsersBody').html());
 }
 
 function resetForm() {
@@ -320,34 +313,50 @@ function removeUserFromGroup() {
 
 function fetchDeletedUsers() {
     $.ajax({
-               url: `${baseUrl}api/get_deleted_users`, // Adjust the URL based on your API endpoint
+               url: `${baseUrl}api/getDeletedUsers`,
                type: 'GET',
-               dataType: "json",
-               success: function(response) {
-                   if (response && response.data) {
-                       populateDeletedUserTable(response.data);
-                   } else {
-                       console.error('Failed to fetch or parse deleted user data:', response);
-                       alert('Failed to fetch deleted users.');
-                   }
+               dataType: 'json', // Ensure jQuery expects and parses the response as JSON
+               success: function(users) { // 'users' should now automatically be a JavaScript object if the response is properly formatted JSON
+                   console.log("Response from server:", users);
+                   var tableBody = $('#deletedUsersBody');
+                   tableBody.empty(); // Clear existing table rows.
+                   console.log("Table body found:", tableBody.length);
+                   
+                   users.forEach(user => {
+                       var row = `<tr>
+                            <td>${user.id}</td>
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                        </tr>`;
+                       tableBody.append(row);
+                   });
                },
-               error: function(xhr) {
-                   console.error('Error:', xhr.responseText);
-                   alert('Failed to fetch deleted users.');
+               error: function(xhr, status, error) {
+                   console.error('Error fetching deleted users:', xhr.responseText);
+                   console.error('Status:', status);
+                   console.error('Error:', error);
                }
            });
 }
 
 function populateDeletedUsersTable(users) {
+    console.log("Received deleted users for table:", users);
+    
     var tableBody = $('#deletedUsersBody');
+    console.log("Table body found:", tableBody.length);
+    
     tableBody.empty(); // Clear existing table rows.
     
     users.forEach(user => {
+        console.log("Adding user:", user);
+        
         var row = `<tr>
                      <td>${user.id}</td>
                      <td>${user.username}</td>
                      <td>${user.email}</td>
-                   </tr>`;
+                    </tr>`;
         tableBody.append(row);
     });
+    
+    console.log("Table after adding rows:", $('#deletedUsersBody').html());
 }

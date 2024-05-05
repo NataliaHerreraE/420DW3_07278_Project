@@ -12,6 +12,7 @@ require_once 'private/helpers/autoloader.php';
 require_once "private/helpers/init.php";
 
 use Project\Application;
+use Project\Controllers\UserGroupController;
 use Teacher\GivenCode\Domain\APIRoute;
 use Teacher\GivenCode\Domain\CallableRoute;
 use Teacher\GivenCode\Domain\WebpageRoute;
@@ -48,7 +49,7 @@ $application->getRouter()->addRoute(new WebpageRoute("/userForm", "Project/userF
  * - delete a user (URL /api/manage_user with method 'DELETE' will call function delete() of UserController)
  */
 $application->getRouter()->addRoute(new APIRoute("/api/manage_user", UserController::class));
-$application->getRouter()->addRoute(new APIRoute("/api/get_deleted_users", UserController::class));
+
 
 /*$application->getRouter()->addRoute(new CallableRoute("/api/get_user_ids", function () {
     $controller = new \Project\Controllers\UserController();
@@ -56,12 +57,17 @@ $application->getRouter()->addRoute(new APIRoute("/api/get_deleted_users", UserC
 }));*/
 
 $application->getRouter()->addRoute(new CallableRoute("/api/get_all_users", [UserController::class, "getAllUsers"]));
-
+$application->getRouter()->addRoute(new CallableRoute("/api/getDeletedUsers",
+                                                      [UserController::class, "getDeletedUsers"]));
 
 
 
 
 $application->getRouter()->addRoute(new WebpageRoute("/groupForm", "Project/groupForm.php"));
+$application->getRouter()->addRoute(new APIRoute("/api/manage_group", UserGroupController::class));
+$application->getRouter()->addRoute(new CallableRoute("/api/get_all_groups", [UserGroupController::class, "getAllGroups"]));
+$application->getRouter()->addRoute(new CallableRoute("/api/getDeletedGroups",
+                                                      [UserGroupController::class, "getDeletedGroup"]));
 
 // Run the application
 $application->run();

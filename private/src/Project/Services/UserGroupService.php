@@ -16,6 +16,7 @@ use Project\DTOs\UserGroup;
 use Teacher\GivenCode\Abstracts\IService;
 use Teacher\GivenCode\Exceptions\RuntimeException;
 use Teacher\GivenCode\Exceptions\ValidationException;
+use Teacher\GivenCode\Services\DBConnectionService;
 
 /**
  *
@@ -24,6 +25,7 @@ class UserGroupService implements IService {
     private UserGroupDAO $userGroupDao;
     
     public function __construct() {
+        $pdo = DBConnectionService::getConnection();
         $this->userGroupDao = new UserGroupDAO();
     }
     
@@ -131,6 +133,10 @@ class UserGroupService implements IService {
      */
     public function deleteUserGroup(int $id, bool $hardDelete = false) : void {
         try {
+            $group = $this->userGroupDao->getById($id);
+            if (!$group){
+                throw new RuntimeException("User group not found.");
+            }
             $this->userGroupDao->deleteById($id, $hardDelete);
         } catch (\Exception $e) {
             throw new RuntimeException("Failed to delete user group: " . $e->getMessage());
@@ -153,6 +159,43 @@ class UserGroupService implements IService {
         } catch (\Exception $e) {
             throw new RuntimeException("Error checking if group name is taken: " . $e->getMessage());
             
+        }
+    }
+    
+    /**
+     * TODO: Function documentation getAllGrpupsId
+     *
+     * @return array
+     *
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function getAllGroupsId() : array {
+        try{
+            return $this->userGroupDao->fetchAllGroupsIds();
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error fetching all user groups: " . $e->getMessage());
+        }
+        
+    }
+    
+    /**
+     * TODO: Function documentation getDeleteGroups
+     *
+     * @return array
+     *
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function getDeleteGroups() : array {
+        try{
+            return $this->userGroupDao->fetchDeletedGroups();
+        } catch (\Exception $e) {
+            throw new RuntimeException("Error fetching all user groups: " . $e->getMessage());
         }
     }
     

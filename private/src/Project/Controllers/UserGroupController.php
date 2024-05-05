@@ -10,6 +10,9 @@ declare(strict_types=1);
 
 namespace Project\Controllers;
 
+use Couchbase\Group;
+use Project\DTOs\UserGroup;
+use Project\Services\LoginService;
 use Project\Services\UserGroupService;
 use Teacher\GivenCode\Abstracts\AbstractController;
 use Teacher\GivenCode\Exceptions\RequestException;
@@ -39,21 +42,20 @@ class UserGroupController extends AbstractController {
      * @since  2024-03-30
      */
     public function get() : void {
-        ob_start();
-        $groupId = $_REQUEST['groupId'] ?? null;
-        
-        if (is_null($groupId) || !is_numeric($groupId)) {
-            throw new RequestException("Bad request: Group ID is missing or invalid.", 400);
+        $this->requireLogin();
+        if (isset($_REQUEST["group_id"]) && is_numeric($_REQUEST["group_id"])) {
+            $group_id = (int) $_REQUEST["group_id"];
+            try {
+                $group = $this->userGroupService->getUserGroupById($group_id);
+                echo json_encode(['success' => true, 'data' => $group->toArray()]);
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Group ID not provided']);
         }
-        
-        $group = $this->userGroupService->getUserGroupById((int) $groupId);
-        if (!$group) {
-            throw new RequestException("Group not found.", 404);
-        }
-        
-        header("Content-Type: application/json;charset=UTF-8");
-        echo json_encode($group);
-        ob_end_flush();
     }
     
     /**
@@ -67,33 +69,22 @@ class UserGroupController extends AbstractController {
      * @since  2024-03-30
      */
     public function post() : void {
-        ob_start();
-        $data = $_REQUEST;
+        $this->requireLogin();
+        $data = json_decode(file_get_contents('php://input'), true);
         
-        if (!$this->validateUserGroupData($data)) {
-            throw new RequestException("Bad request: Missing or invalid fields.", 400);
-        }
-        
-        // Check if group name already exists
-        if ($this->userGroupService->isGroupNameTaken($data['groupName'])) {
-            throw new RequestException("The group name is already taken.", 409);
+        if (!isset($data['groupname']) || !isset($data['description'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
         }
         
         try {
-            $created_group = $this->userGroupService->createUserGroup($data['groupName'], $data['description']);
-            header("Content-Type: application/json;charset=UTF-8");
-            http_response_code(201); // 201 Created
-            echo json_encode([
-                                 'message' => 'User group created successfully',
-                                 'groupId' => $created_group->getId()
-                             ]);
-        } catch (ValidationException $exception) {
-            throw new RequestException("Validation error: " . $exception->getMessage(), 422);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
+            $newGroupId = $this->userGroupService->createUserGroup($data['groupname'], $data['description']);
+            echo json_encode(['success' => true, 'message' => 'Group created successfully', 'group_id' => $newGroupId]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
-        
-        ob_end_flush();
     }
     
     
@@ -109,40 +100,28 @@ class UserGroupController extends AbstractController {
      * @since  2024-03-30
      */
     public function put() : void {
-        ob_start();
-        $data = $_REQUEST;
+        $data = json_decode(file_get_contents('php://input'), true);
         
-        if (empty($data['userGroupId'])) {
-            throw new RequestException("User group ID is required for updating.", 400);
-        }
-        
-        $userGroupId = (int) $data['userGroupId'];
-        $currentGroupData = $this->userGroupService->getUserGroupById($userGroupId);
-        
-        if ($this->userGroupService->isGroupNameTaken($data['groupName'], $userGroupId)) {
-            throw new RequestException("The group name is already taken.", 409);
-        }
-        
-        $validationResult = $this->validateUserGroupData($data);
-        if (!$validationResult['success']) {
-            throw new RequestException($validationResult['message'], 400);
+        if (!isset($data['group_id']) || !is_numeric($data['group_id'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Group ID not provided']);
+            return;
         }
         
         try {
-            $updatedGroup =
-                $this->userGroupService->updateUserGroup($userGroupId, $data['groupName'], $data['description'] ?? '');
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode([
-                                 'message' => 'User group updated successfully',
-                                 'userGroupId' => $updatedGroup->getId()
-                             ]);
-        } catch (ValidationException $exception) {
-            throw new RequestException("Validation error: " . $exception->getMessage(), 422);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
+            if (isset($data['is_deleted']) && $data['is_deleted'] == 1) {
+                // Perform soft delete
+                $this->userGroupService->deleteUserGroup((int) $data['group_id']);
+                echo json_encode(['success' => true, 'message' => 'Group soft-deleted successfully']);
+            } else {
+                // Normal update logic here
+                $this->userGroupService->updateUserGroup($data['group_id'], $data['groupname'], $data['description']);
+                echo json_encode(['success' => true, 'message' => 'Group updated successfully']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
-        
-        ob_end_flush();
     }
     
     
@@ -157,42 +136,24 @@ class UserGroupController extends AbstractController {
      * @since  2024-03-30
      */
     public function delete() : void {
-        ob_start();
+        $this->requireLogin();
+        $data = $this->getJsonData();
         
-        // Retrieve the user group ID from the request
-        $userGroupId = $_REQUEST['userGroupId'] ?? null;
-        
-        if (is_null($userGroupId) || !is_numeric($userGroupId)) {
-            throw new RequestException("Bad request: User group ID is missing or invalid.", 400);
+        if (!isset($data['group_id']) || !is_numeric($data['group_id'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Group ID not provided']);
+            return;
         }
-        
-        // Convert the user group ID to an integer
-        $userGroupId = (int) $userGroupId;
         
         try {
-            // Check if the user group exists
-            $userGroup = $this->userGroupService->getUserGroupById($userGroupId);
-            if (!$userGroup) {
-                throw new RequestException("User group not found.", 404);
-            }
-            
-            // Determine whether it's a hard or soft delete
-            $hard_delete = false; //
-            // Perform the deletion
-            $this->userGroupService->deleteUserGroup($userGroupId, $hard_delete);
-            
-            // Respond with a success message
-            header("Content-Type: application/json;charset=UTF-8");
-            echo json_encode(['message' => 'User group deleted successfully']);
-        } catch (RequestException $exception) {
-            http_response_code($exception->getHttpResponseCode());
-            echo json_encode(['error' => $exception->getMessage()]);
-        } catch (RuntimeException $exception) {
-            throw new RequestException("Server error: " . $exception->getMessage(), 500);
+            $this->userGroupService->deleteUserGroup((int) $data['group_id']);
+            echo json_encode(['success' => true, 'message' => 'Group soft deleted successfully']);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
-        
-        ob_end_flush();
     }
+    
     
     private function validateUserGroupData($data) : array {
         if (empty($data['groupName'])) {
@@ -206,5 +167,126 @@ class UserGroupController extends AbstractController {
         }
         // If all checks pass
         return ['success' => true, 'message' => 'Validation successful.'];
+    }
+    
+    private function requireLogin() : void {
+        if (!LoginService::isLoggedIn()) {
+            throw new RequestException("Not authorized.", 401);
+        }
+    }
+    
+    private function getJsonData() {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new RequestException("Invalid JSON data received.", 400);
+        }
+        return $data;
+    }
+    
+    private function jsonResponse($data, $statusCode = 200) : void {
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+        echo json_encode($data);
+    }
+    
+    /**
+     * TODO: Function documentation addUsersToGroup
+     *
+     * @return void
+     *
+     * @throws RequestException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function addUsersToGroup() : void {
+        $this->requireLogin();
+        $data = $this->getJsonData();
+        
+        if (!isset($data['group_id']) || !is_numeric($data['group_id'])) {
+            throw new RequestException("Bad request: Usergroup ID is missing or invalid.", 400);
+        }
+        
+        if (!isset($data['user_ids']) || !is_array($data['user_ids'])) {
+            throw new RequestException("Bad request: User IDs are missing or invalid.", 400);
+        }
+        
+        $this->userGroupService->addUsersToGroup((int) $data['group_id'], $data['user_ids']);
+        echo $this->jsonResponse(['message' => 'Users added to group successfully'], 204);
+    }
+    
+    
+    /**
+     * TODO: Function documentation removeUserFromGroup
+     *
+     * @return void
+     *
+     * @throws RequestException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function removeUserFromGroup() : void {
+        $this->requireLogin();
+        $data = $this->getJsonData();
+        
+        if (!isset($data['group_id']) || !is_numeric($data['group_id'])) {
+            throw new RequestException("Bad request: Usergroup ID is missing or invalid.", 400);
+        }
+        
+        if (!isset($data['user_id']) || !is_numeric($data['user_id'])) {
+            throw new RequestException("Bad request: User ID is missing or invalid.", 400);
+        }
+        
+        $this->userGroupService->removeUserFromGroup((int) $data['group_id'], (int) $data['user_id']);
+        echo $this->jsonResponse(['message' => 'User removed from group successfully'], 204);
+        
+    }
+    
+    public static function getAllGroups() : void {
+        header('Content-Type: application/json');
+        try {
+            $groupService = new UserGroupService();
+            $groups = $groupService->getAllUserGroups();
+            $groupArray = [];
+            foreach ($groups as $group) {
+                if ($group instanceof usergroup) {
+                    $groupArray[] = $group->toArray();
+                }
+            }
+            echo json_encode(['success' => true, 'data' => $groupArray]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * TODO: Function documentation getDeletedGroup
+     *
+     * @return void
+     *
+     * @throws RuntimeException
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-05
+     */
+    public static function getDeletedGroup() : void {
+        header('Content-Type: application/json');
+        try {
+            $groupService = new UserGroupService();
+            $groups = $groupService->getDeleteGroups();
+            $groupArray = [];
+            foreach ($groups as $group) {
+                if ($group instanceof UserGroup){
+                    $groupArray[] = $group->toArray();
+                }
+                
+            }
+            echo json_encode(['success' => true, 'data' => $groups]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
     }
 }

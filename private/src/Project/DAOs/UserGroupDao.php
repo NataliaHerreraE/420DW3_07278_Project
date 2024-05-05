@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Project\DAOs;
 
 use PDO;
+use PDOException;
 use Project\DTOs\UserGroup;
 use Teacher\GivenCode\Abstracts\AbstractDTO;
 use Teacher\GivenCode\Abstracts\IDAO;
@@ -31,10 +32,9 @@ class UserGroupDao implements IDAO {
     private PDO $connection;
     
     /**
-     * @param PDO $connection
      * @throws RuntimeException
      */
-    public function __construct(PDO $connection) {
+    public function __construct() {
         //$this->connection = $connection;
         $this->connection = DBConnectionService::getConnection();
     }
@@ -182,8 +182,10 @@ class UserGroupDao implements IDAO {
         $connection = DBConnectionService::getConnection();
         
         if ($realDeletes) {
+            // Hard delete - directly remove the user record from the database
             $statement = $connection->prepare(self::DELETE_QUERY);
         } else {
+            // Soft delete - set is_deleted to true
             $statement = $connection->prepare("UPDATE `" . UserGroup::TABLE_NAME .
                                               "` SET `is_deleted` = TRUE WHERE `group_id` = :id;");
         }
@@ -191,15 +193,16 @@ class UserGroupDao implements IDAO {
         $statement->bindValue(":id", $id, PDO::PARAM_INT);
         $statement->execute();
         
-        // Post-delete check
+        // verify that the user has indeed been deleted.
         if ($realDeletes) {
-            $deleted_group = $this->getById($id);
-            if ($deleted_group !== null) {
-                // If the group can still be found, the deletion didn't work
-                throw new RuntimeException("Failed to delete the user group. Group ID: " . $id);
+            $deleted_user = $this->getById($id);
+            if ($deleted_user !== null) {
+                // If the user can still be found, the deletion didn't work as expected.
+                throw new RuntimeException("Failed to delete the user. User ID: " . $id);
             }
         }
     }
+    
     
     /**
      * TODO: Function documentation getAll
@@ -344,6 +347,37 @@ class UserGroupDao implements IDAO {
         $count = $stmt->fetchColumn();
         
         return $count > 0;
+    }
+    
+    /**
+     * TODO: Function documentation fetchAllGroupsIds
+     *
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function fetchAllGroupsIds() : array {
+        $sql = "SELECT group_id FROM UserGroups";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
+    /**
+     * TODO: Function documentation fetchDeletedGroups
+     *
+     * @return array
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-04
+     */
+    public function fetchDeletedGroups() : array {
+        $sql = "SELECT * FROM UserGroups WHERE is_deleted = 1";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
     }
     
     

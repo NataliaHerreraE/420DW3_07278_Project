@@ -44,6 +44,7 @@ class User extends AbstractDTO {
     
     public function __construct() {
         parent::__construct();
+        
     }
     
     /**
@@ -63,6 +64,7 @@ class User extends AbstractDTO {
         $object->setUsername($username);
         $object->setPassword($password);
         $object->setEmail($email);
+        $object->isDeleted = $data['is_deleted'] ?? false;
         return $object;
     }
     

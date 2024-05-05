@@ -26,12 +26,15 @@ class UserDao implements IDAO {
     private const GET_QUERY = "SELECT * FROM `" . User::TABLE_NAME . "` WHERE `user_id` = :user_id;";
     private const CREATE_QUERY = "INSERT INTO `" . User::TABLE_NAME .
     "` (`username`, `user_password`, `email`) VALUES (:username, :password, :email);";
-    private const UPDATE_QUERY = "UPDATE `" . User::TABLE_NAME .
+    public const UPDATE_QUERY = "UPDATE `" . User::TABLE_NAME .
     "` SET `username` = :username, `user_password` = :password, `email` = :email WHERE `user_id` = :user_id;";
     private const DELETE_QUERY = "DELETE FROM `" . User::TABLE_NAME . "` WHERE `user_id` = :user_id;";
     
     public function __construct() {
         $this->db = DBConnectionService::getConnection();
+        if (isset($data['id'])) {
+            $this->id = $data['id'];
+        }
     }
     
     /**
@@ -234,7 +237,7 @@ class UserDao implements IDAO {
             if ($includeDeleted) {
                 $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . ";");
             } else {
-                $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE 'is_deleted' = FALSE;");
+                $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE 'is_deleted' = 0;");
             }
             $statement->execute();
             $results_array = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -359,19 +362,6 @@ class UserDao implements IDAO {
         return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
     
-    /**
-     * TODO: Function documentation fetchAllUserNames
-     * @return array
-     *
-     * @author Natalia Herrera.
-     * @since  2024-05-03
-     */
-    public function fetchAllUserNames() : array {
-        $sql = "SELECT username FROM users";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-    }
     
     /**
      * TODO: Function documentation getDeletedUsers
@@ -381,8 +371,13 @@ class UserDao implements IDAO {
      * @since  2024-05-04
      */
     public function getDeletedUsers() : array {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE is_deleted = 1");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "SELECT user_id, username, user_password, email, is_deleted FROM users WHERE is_deleted = 1";
+        $statement = $this->db->prepare($sql);
+        $statement->execute();
+        $users = [];
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $users[] = new User($row);
+        }
+        return $users;
     }
 }

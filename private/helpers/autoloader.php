@@ -26,17 +26,19 @@ function project_autoloader(string $classFQN) : void {
     $path_from_fqn = str_replace("\\", NAMESPACE_PATH_SEPARATOR, $classFQN);
     require_once PRJ_SRC_DIR . $path_from_fqn . ".php";
     
-  /*  $path_from_fqn = str_replace("\\", DIRECTORY_SEPARATOR, $classFQN);
-    $full_path = PRJ_SRC_DIR . $path_from_fqn . ".php";
+/*    $path_from_fqn = str_replace("\\", DIRECTORY_SEPARATOR, $classFQN);
+    $file = PRJ_SRC_DIR . $path_from_fqn . ".php";
     
-    // Debugging output
-    echo "Attempting to load: " . $full_path . "<br>";
+    echo "Expected to load: $file<br>";
     
-    if(file_exists($full_path)) {
-        require_once $full_path;
+    if (file_exists($file)) {
+        require_once $file;
     } else {
-        echo "Failed to load: " . $full_path . "<br>";
+        echo "Failed to load: $file<br>";
     }*/
+    
+    
 }
+
 
 spl_autoload_register("project_autoloader");
