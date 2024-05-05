@@ -20,6 +20,8 @@ use Teacher\GivenCode\Domain\WebpageRoute;
 use Teacher\GivenCode\Services\InternalRouter;
 use Project\Controllers\UserController;
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 Debug::$DEBUG_MODE = false;
 //Debug::$DEBUG_MODE = true;

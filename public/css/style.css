@@ -10,11 +10,16 @@
 }
 
 body {
+    padding-top: 4rem;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
+    flex-direction: column;
     min-height: 100vh;
-    overflow-x: hidden; /* Prevents horizontal scroll */
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0;
+    width: 100%; /* Ensures body takes full width */
 }
 
 .login-background {
@@ -97,7 +102,7 @@ body {
 .container .btn {
     width: 100%;
     height: 45px;
-    background: #F8C9CB;
+    background: #F8CACC;
     border: none;
     outline: none;
     border-radius: 40px;
@@ -129,28 +134,27 @@ body {
 
 /* header page */
 .header-container {
-    width: 100%;
-    height: 4rem;
+    position: fixed;
     top: 0;
     left: 0;
-    position: fixed;
+    width: 100%;
+    height: 4rem;
     background-color: #282E44;
-    color: #F8CACC;
+    z-index: 1000;
+    padding: 10px 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* High z-index to keep it on top */
-    padding: 10px 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
 }
 
 .nav-bar {
     margin-top: 10px;
     display: flex;
-    justify-content: space-between; /* Space between the elements */
+    justify-content: space-between;
     align-items: flex-end;
-    width: 100%; /* Full width */
-    max-width: 1200px; /* Maximum width */
+    width: 100%;
+    max-width: 1200px;
     padding: 10px 20px;
 }
 
@@ -159,7 +163,7 @@ body {
     text-decoration: none;
     padding: 10px 15px;
     font-weight: 500;
-    line-height: 1.5; /* Adjusted for better alignment */
+    line-height: 1.5;
 }
 
 .logout-link {
@@ -306,24 +310,27 @@ body {
 
 
 /*Forms CSS*/
+body .forms-page {
+    padding-top: 2rem;
+}
+
 .forms-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: calc(100vh - 4rem); /* Adjusted for header height */
-    padding-top: 4rem; /* Same as header height */
+    height: calc(100vh - 4rem);
+    padding-top: 10rem;
     background: url('../images/Project/home.jpg') no-repeat center center fixed;
     background-size: cover;
 }
 
 .container-form {
-    width: 60%;
-    background-color: transparent;
+    width: 80%;
     padding: 2rem;
+    background-color: transparent;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-top: 8rem;
     border: 2px solid rgba(255, 255, 255, .2);
     backdrop-filter: blur(20px);
 }
@@ -364,7 +371,7 @@ body {
     background-color: #282E44;
 }
 
-.btn-search, .btn-allUser, .btn-allgroups, .btn-view-deleted {
+.btn-search, .btn-all, .btn-view-deleted {
     width: 100%;
     padding: 10px;
     margin-top: 10px;
@@ -375,7 +382,7 @@ body {
     cursor: pointer;
 }
 
-.btn-search:hover, .btn-allUser, .btn-allgroups, .btn-view-deleted:hover {
+.btn-search:hover, .btn-all:hover, .btn-view-deleted:hover {
     background-color: #282E44;
 }
 
@@ -390,7 +397,7 @@ body {
     cursor: pointer;
 }
 
-.btn-remove-from-group:hover, .btn-add-to-group, .btn-hardDelete:hover {
+.btn-remove-from-group:hover, .btn-add-to-group:hover, .btn-hardDelete:hover {
     background-color: #DC4049;
 }
 
@@ -401,4 +408,11 @@ body {
 
 .col1, .col2 {
     width: 48%; /* Slightly less than half to fit margins */
+}
+
+@media (max-width: 768px) {
+    .container-form {
+        width: 100%;
+        margin-top: 4.5rem;
+    }
 }

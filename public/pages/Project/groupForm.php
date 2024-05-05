@@ -94,7 +94,7 @@ $canSearchUserGroups = in_array('SEARCH_USERGROUPS', $permissions);
             <select class="form-control" id="groupIdSelect">
             </select>
             <button type="button" class="btn-search" onclick="searchByGroupId()">Search by ID</button>
-            <button type="button" class="btn-allgroups" onclick="fetchAllGroups()">Display All Groups</button>
+            <button type="button" class="btn-all" onclick="fetchAllGroups()">Display All Groups</button>
             <div id="allGroupsBody">
                 <table class="table">
                     <thead>

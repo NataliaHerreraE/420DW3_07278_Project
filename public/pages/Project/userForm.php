@@ -93,7 +93,7 @@ $canSearchUsers = in_array('SEARCH_USERS', $permissions);
             <select class="form-control" id="userIdSelect">
             </select>
             <button type="button" class="btn-search" id="userIdSelect" onclick="searchByUserId()">Search by ID</button>
-            <button type="button" class="btn-allUser" onclick="fetchAllUsers()">Display All Users</button>
+            <button type="button" class="btn-all" onclick="fetchAllUsers()">Display All Users</button>
             <br>
             <div id="allUsersDisplay">
                 <table class="table">

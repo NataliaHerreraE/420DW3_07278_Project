@@ -33,10 +33,10 @@ class Permission extends AbstractDTO {
     private string $permissionKey;
     private string $name;
     private string $description;
-    private ?DateTime $createdAt;
-    private ?DateTime $updatedAt;
+    private ?DateTime $createdAt = null;
+    private ?DateTime $updatedAt = null;
     
-    public function __construct() {
+    #[Pure] public function __construct() {
         parent::__construct();
     }
     
@@ -76,14 +76,22 @@ class Permission extends AbstractDTO {
         $object->setPermissionKey($dbAssocArray['permission_key']);
         $object->setName($dbAssocArray['name']);
         $object->setDescription($dbAssocArray['description']);
-        $object->setCreatedAt(
-            DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["created_at"])
-        );
-        $object->setUpdatedAt(
-            DateTime::createFromFormat(DB_DATETIME_FORMAT, $dbAssocArray["updated_at"])
-        );
+        
+        $createdAt = DateTime::createFromFormat('Y-m-d H:i:s', $dbAssocArray['created_at'] ?? 'now');
+        if ($createdAt === false) {
+            $createdAt = new DateTime();
+        }
+        $object->setCreatedAt($createdAt);
+        
+        $updatedAt = DateTime::createFromFormat('Y-m-d H:i:s', $dbAssocArray['updated_at'] ?? 'now');
+        if ($updatedAt === false) {
+            $updatedAt = new DateTime();
+        }
+        $object->setUpdatedAt($updatedAt);
+        
         return $object;
     }
+    
     
     /**
      * TODO: Function documentation getPermissionKey
@@ -306,12 +314,11 @@ class Permission extends AbstractDTO {
      */
     public function toArray() : array {
         return [
-            'permission_id' => $this->getId(),
-            'permission_key' => $this->getPermissionKey(),
-            'name' => $this->getName(),
-            'description' => $this->getDescription(),
-            "createdAt" => empty($this->getCreatedAt()) ? null : $this->getCreatedAt()->format(HTML_DATETIME_FORMAT),
-            "updatedAt" => empty($this->getUpdatedAt()) ? null : $this->getUpdatedAt()->format(HTML_DATETIME_FORMAT)
+            'id' => $this->id,
+            'permissionKey' => $this->permissionKey,
+            'name' => $this->name,
+            'description' => $this->description
         ];
     }
+    
 }

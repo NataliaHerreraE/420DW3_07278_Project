@@ -40,21 +40,26 @@ class PermissionController extends AbstractController {
     public function get() : void {
         $this->requireLogin();
         
-        if (isset($_REQUEST["permission_id"]) && is_numeric($_REQUEST["permission_id"])) {
-            $permission_id = (int) $_REQUEST["permission_id"];
+        if (isset($_GET["permission_id"]) && is_numeric($_GET["permission_id"])) {
+            $permission_id = (int) $_GET["permission_id"];
             try {
                 $permission = $this->permissionService->getPermissionById($permission_id);
-                echo $this->jsonResponse($permission->toArray());
+                if ($permission) {
+                    echo $this->jsonResponse($permission->toArray());
+                } else {
+                    http_response_code(404);
+                    echo $this->jsonResponse(['error' => 'Permission not found'], 404);
+                }
             } catch (Exception $e) {
                 http_response_code(500);
                 echo $this->jsonResponse(['error' => $e->getMessage()], 500);
-                
             }
         } else {
-            $permissions = $this->permissionService->getAllPermissions();
-            echo $this->jsonResponse($permissions);
+            http_response_code(400);
+            echo $this->jsonResponse(['error' => 'Invalid permission ID'], 400);
         }
     }
+    
     
     /**
      * TODO: Function documentation post
@@ -66,11 +71,15 @@ class PermissionController extends AbstractController {
      * @since  2024-03-30
      */
     public function post() : void {
-        $this->requireLogin();
-        $data = $this->getJsonData();
-        try{
-            $created_permission = $this->permissionService->createPermission($data['permissionKey'], $data['name'],
-                                                                             $data['description'] ?? '');
+        $this->requireLogin();  // Ensure user is logged in
+        $data = $this->getJsonData();  // Decoding JSON body
+        
+        try {
+            $created_permission = $this->permissionService->createPermission(
+                $data['permissionKey'],
+                $data['name'],
+                $data['description'] ?? ''
+            );
             echo $this->jsonResponse(['success' => true, 'message' => 'Permission created successfully', 'permissionId' => $created_permission->getId(), 'permission' => $created_permission->toArray()]);
             
         } catch (ValidationException $ve) {
@@ -78,6 +87,7 @@ class PermissionController extends AbstractController {
             echo $this->jsonResponse(['success' => false, 'message' => $ve->getMessage()]);
         }
     }
+    
     
     /**
      * TODO: Function documentation put
@@ -92,15 +102,24 @@ class PermissionController extends AbstractController {
         $this->requireLogin();
         $data = $this->getJsonData();
         
-        $this->validateUserData($data);
-        if (!isset($data['permission_id']) || !is_numeric($data['permission_id'])) {
-            throw new ValidationException("Permission ID is required and must be an integer.");
+        try {
+            $this->validatePermissionData($data);
+            $updatedPermission = $this->permissionService->updatePermission(
+                (int) $data['permission_id'],
+                $data['permissionKey'],
+                $data['name'],
+                $data['description'] ?? ''
+            );
+            echo $this->jsonResponse(['success' => true, 'message' => 'Permission updated successfully']);
+        } catch (ValidationException $ve) {
+            http_response_code(400);
+            echo $this->jsonResponse(['success' => false, 'message' => $ve->getMessage()]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
         }
-        
-        $this->permissionService->updatePermission((int) $data['permission_id'], $data['permissionKey'], $data['name'], $data['description'] ?? '');
-        echo $this->jsonResponse(['success' => true, 'message' => 'Permission updated successfully']);
-        
     }
+    
     
     /**
      * TODO: Function documentation delete
@@ -124,22 +143,25 @@ class PermissionController extends AbstractController {
         
     }
     
-    private function validatePermissionData($data) : bool {
-        if (empty($data['permissionKey']) || empty($data['name'])) {
-            return false;
-        }
-        if (!preg_match('/^\w+$/', $data['permissionKey']) || (strlen($data['permissionKey']) > 30)) {
-            return false;
-        }
-        if ((strlen($data['name']) < 3) || (strlen($data['name']) > 30)) {
-            return false;
+    private function validatePermissionData(array $data) : void {
+        $requiredFields = ['permissionKey', 'name', 'description'];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                throw new ValidationException("Missing required field: $field");
+            }
         }
         
-        if (isset($data['description']) && (strlen($data['description']) > 70)) {
-            return false;
+        if (!preg_match('/^\w+$/', $data['permissionKey']) || strlen($data['permissionKey']) > 30) {
+            throw new ValidationException("Invalid permission key format or length.");
         }
         
-        return true;
+        if (strlen($data['name']) < 3 || strlen($data['name']) > 30) {
+            throw new ValidationException("Name must be between 3 and 30 characters.");
+        }
+        
+        if (isset($data['description']) && strlen($data['description']) > 70) {
+            throw new ValidationException("Description must not exceed 70 characters.");
+        }
     }
     
     private function requireLogin() : void {
@@ -150,11 +172,12 @@ class PermissionController extends AbstractController {
     
     private function getJsonData() {
         $data = json_decode(file_get_contents('php://input'), true);
-        if (!$data) {
-            throw new RequestException("Invalid JSON data received.", 400);
+        if (!isset($data['permission_id'])) {
+            throw new RequestException("Permission ID is missing or invalid.", 400);
         }
         return $data;
     }
+    
     
     private function jsonResponse($data, $statusCode = 200) : void {
         header('Content-Type: application/json');
@@ -179,9 +202,7 @@ class PermissionController extends AbstractController {
             $permissions = $permissionService->getAllPermissions();
             $permissionArray = [];
             foreach ($permissions as $permission) {
-                if ($permission instanceof Permission) {
-                    $permissionArray[] = $permission->toArray();
-                }
+                $permissionArray[] = $permission->toArray();
             }
             echo json_encode(['success' => true, 'data' => $permissionArray]);
         } catch (Exception $e) {
@@ -189,5 +210,6 @@ class PermissionController extends AbstractController {
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
     
 }

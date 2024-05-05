@@ -122,21 +122,23 @@ function fetchGroupIds() {
 }
 
 function searchByGroupId() {
-    let groupId = $('#groupIdSelect').val();
+    let permissionId = $('#permissionIdSelect').val();
     $.ajax({
-               url: `${baseUrl}api/manage_group`,
+               url: `${baseUrl}api/manage_permission`,
                type: 'GET',
-               data: {group_id: groupId},
+               data: {permission_id: permissionId}, // Pass the permission ID as a query parameter
                dataType: 'json',
                success: function(response) {
-                   if (response && response.success && response.data) {
-                       populateGroupForm(response.data);
+                   if (response && response.permission_id) {
+                       populateForm(response);
                    } else {
-                       alert('No data found for group.');
+                       console.error('No data found for permission:', response);
+                       alert('No data found for permission.');
                    }
                },
                error: function(xhr) {
-                   alert('Failed to search group.');
+                   console.error('Failed to fetch permission:', xhr.responseText);
+                   alert('Failed to fetch permission.');
                }
            });
 }

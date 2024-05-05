@@ -78,7 +78,7 @@ $canSearchPermissions = in_array('SEARCH_PERMISSIONS', $permissions);
                 </div>
                 <div class="input-form">
                     <label for="descriptionInput" class="form-label">Description</label>
-                    <input type="text" class="form-control" id="descriptionInput" name="description" placeholder="Email" required>
+                    <input type="text" class="form-control" id="descriptionInput" name="description" placeholder="description" required>
                 </div>
                 <!-- Form buttons -->
                 <button type="button" class="btn-create" onclick="createPermission()">Create</button>
@@ -92,7 +92,7 @@ $canSearchPermissions = in_array('SEARCH_PERMISSIONS', $permissions);
             <select class="form-control" id="permissionIdSelect">
             </select>
             <button type="button" class="btn-search" id="permissionIdSelect" onclick="searchByPermissionId()">Search by ID</button>
-            <button type="button" class="btn-allPermission" onclick="fetchAllPermissions()">Display All Permissions</button>
+            <button type="button" class="btn-all" onclick="fetchAllPermissions()">Display All Permissions</button>
             <br>
             <div id="allPermissionDisplay">
                 <table class="table">

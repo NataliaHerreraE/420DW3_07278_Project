@@ -47,18 +47,17 @@ class PermissionDao implements IDAO {
      * @author Marc-Eric Boury
      * @since  2024-03-17
      */
-    public function getById(int $id, bool $includeDeleted = false) : ?Permission {
-        $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare(self::GET_QUERY);
-        $statement->bindValue(":permission_id", $id, PDO::PARAM_INT);
-        $statement->execute();
-        
-        $array = $statement->fetch(PDO::FETCH_ASSOC);
-        if (!$array) {
-            throw new RuntimeException("No record found for permission_id# [$id].");
+    public function getById(int $id) : ?Permission {
+        $stmt = $this->connection->prepare("SELECT * FROM Permissions WHERE permission_id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($result) {
+            return Permission::fromDbArray($result);  // Convert DB array to Permission object
         }
-        return Permission::fromDbArray($array);
+        return null;
     }
+    
     
     /**
      * {@inheritDoc}
@@ -156,9 +155,16 @@ class PermissionDao implements IDAO {
     public function deleteById(int $id, bool $realDeletes = false) : void {
         $connection = DBConnectionService::getConnection();
         $statement = $connection->prepare(self::DELETE_QUERY);
-        $statement->bindValue(":id", $id, PDO::PARAM_INT);
-        $statement->execute();
+        $statement->bindValue(":permission_id", $id, PDO::PARAM_INT);
+        if ($statement->execute()) {
+            if ($statement->rowCount() === 0) {
+                throw new RuntimeException("No permission found with ID: $id, nothing deleted.");
+            }
+        } else {
+            throw new RuntimeException("Failed to execute delete operation.");
+        }
     }
+    
     
     /**
      * TODO: Function documentation getAll
@@ -201,7 +207,7 @@ class PermissionDao implements IDAO {
      * @author Natalia Herrera.
      * @since  2024-04-11
      */
-    public function getUserPermissions(int $userId): array {
+    public function getUserPermissions(int $userId) : array {
         $query = "SELECT permission_key FROM permissions
               JOIN user_permissions ON permissions.permission_id = user_permissions.permission_id
               WHERE user_permissions.user_id = :userId";
@@ -209,6 +215,26 @@ class PermissionDao implements IDAO {
         $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+    
+    /**
+     * TODO: Function documentation getPermissionById
+     *
+     * @param $id
+     * @return mixed
+     *
+     * @author Natalia Herrera.
+     * @since  2024-05-05
+     */
+    public function getPermissionById(int $id): ?Permission {
+        $stmt = $this->connection->prepare("SELECT * FROM Permissions WHERE permission_id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($result) {
+            return new Permission($result);  // Ensure your Permission class can handle this
+        }
+        return null;
     }
     
     

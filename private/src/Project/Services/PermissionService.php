@@ -152,9 +152,13 @@ class PermissionService implements IService {
         try {
             $this->permissionDao->deleteById($id);
         } catch (PDOException $e) {
-            throw new RuntimeException("Database error occurred: " . $e->getMessage());
+            error_log("PDOException on delete: " . $e->getMessage());
+            throw new RuntimeException("Database error occurred during delete operation: " . $e->getMessage());
+        } catch (RuntimeException $e) {
+            throw $e;
         } catch (Exception $e) {
             throw new RuntimeException("An unexpected error occurred: " . $e->getMessage());
         }
     }
+    
 }
