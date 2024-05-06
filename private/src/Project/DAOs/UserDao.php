@@ -30,11 +30,10 @@ class UserDao implements IDAO {
     "` SET `username` = :username, `user_password` = :password, `email` = :email WHERE `user_id` = :user_id;";
     private const DELETE_QUERY = "DELETE FROM `" . User::TABLE_NAME . "` WHERE `user_id` = :user_id;";
     
+    private PDO $db;
+    
     public function __construct() {
         $this->db = DBConnectionService::getConnection();
-        if (isset($data['id'])) {
-            $this->id = $data['id'];
-        }
     }
     
     /**
@@ -50,8 +49,7 @@ class UserDao implements IDAO {
      * @since  2024-03-17
      */
     public function getById(int $id, bool $includeDeleted = false) : ?User {
-        $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare(self::GET_QUERY);
+        $statement = $this->db->prepare(self::GET_QUERY);
         $statement->bindValue(":user_id", $id, PDO::PARAM_INT);
         $statement->execute();
         
@@ -79,14 +77,13 @@ class UserDao implements IDAO {
             throw new RuntimeException("Passed object is not an instance of User.");
         }
         $dto->validateForDbCreation();
-        $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare(self::CREATE_QUERY);
+        $statement = $this->db->prepare(self::CREATE_QUERY);
         $statement->bindValue(":username", $dto->getUsername(), PDO::PARAM_STR);
         $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
         $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
         $statement->execute();
         
-        $new_id = (int) $connection->lastInsertId();
+        $new_id = (int) $this->db->lastInsertId();
         $new_user = $this->getById($new_id);
         if ($new_user === null) {
             throw new RuntimeException("Unable to retrieve the user after creation. User ID: {$new_id}");
@@ -114,8 +111,7 @@ class UserDao implements IDAO {
         }
         $dto->validateForDbUpdate();
         
-        $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare(self::UPDATE_QUERY);
+        $statement = $this->db->prepare(self::UPDATE_QUERY);
         $statement->bindValue(":username", $dto->getUsername(), PDO::PARAM_STR);
         $statement->bindValue(":password", $dto->getPassword(), PDO::PARAM_STR);
         $statement->bindValue(":email", $dto->getEmail(), PDO::PARAM_STR);
@@ -161,14 +157,13 @@ class UserDao implements IDAO {
         }
         $dto->validateForDbDelete();
         
-        $connection = DBConnectionService::getConnection();
         
         if ($realDeletes) {
             // Hard delete - directly remove the user record from the database
-            $statement = $connection->prepare(self::DELETE_QUERY);
+            $statement = $this->db->prepare(self::DELETE_QUERY);
         } else {
             // Soft delete - set is_deleted to true
-            $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME .
+            $statement = $this->db->prepare("UPDATE `" . User::TABLE_NAME .
                                               "` SET `is_deleted` = TRUE WHERE `user_id` = :user_id;");
         }
         
@@ -197,14 +192,13 @@ class UserDao implements IDAO {
      * @since  2024-03-17
      */
     public function deleteById(int $id, bool $realDeletes = false) : void {
-        $connection = DBConnectionService::getConnection();
         
         if ($realDeletes) {
             // Hard delete - directly remove the user record from the database
-            $statement = $connection->prepare(self::DELETE_QUERY);
+            $statement = $this->db->prepare(self::DELETE_QUERY);
         } else {
             // Soft delete - set is_deleted to true
-            $statement = $connection->prepare("UPDATE `" . User::TABLE_NAME .
+            $statement = $this->db->prepare("UPDATE `" . User::TABLE_NAME .
                                               "` SET `is_deleted` = TRUE WHERE `user_id` = :id;");
         }
         
@@ -232,12 +226,11 @@ class UserDao implements IDAO {
      * @since  2024-03-29
      */
     public function getAll(bool $includeDeleted = false) : array {
-        $connection = DBConnectionService::getConnection();
         try {
             if ($includeDeleted) {
-                $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . ";");
+                $statement = $this->db->prepare("SELECT * FROM " . User::TABLE_NAME . ";");
             } else {
-                $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE 'is_deleted' = 0;");
+                $statement = $this->db->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE 'is_deleted' = 0;");
             }
             $statement->execute();
             $results_array = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -269,9 +262,8 @@ class UserDao implements IDAO {
      * @since  2024-04-11
      */
     public function addToGroup(int $userId, int $groupId) : void {
-        $connection = DBConnectionService::getConnection();
         $statement =
-            $connection->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
+            $this->db->prepare("INSERT INTO User_UserGroup (user_id, user_group_id) VALUES (:user_id, :group_id)");
         $statement->bindParam(':user_id', $userId);
         $statement->bindParam(':group_id', $groupId);
         $statement->execute();
@@ -291,9 +283,8 @@ class UserDao implements IDAO {
      * @since  2024-04-11
      */
     public function removeFromGroup(int $userId, int $groupId) : void {
-        $connection = DBConnectionService::getConnection();
         $statement =
-            $connection->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
+            $this->db->prepare("DELETE FROM User_UserGroup WHERE user_id = :user_id AND user_group_id = :group_id");
         $statement->bindParam(':user_id', $userId);
         $statement->bindParam(':group_id', $groupId);
         $statement->execute();
@@ -311,8 +302,7 @@ class UserDao implements IDAO {
      */
     // Retrieves all groups that a user belongs to
     public function getUserGroups(int $userId) : array {
-        $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare(
+        $statement = $this->db->prepare(
             "SELECT g.* FROM UserGroups g
              INNER JOIN User_UserGroup uug ON g.group_id = uug.user_group_id
              WHERE uug.user_id = :user_id"
@@ -334,8 +324,7 @@ class UserDao implements IDAO {
      * @since  2024-04-11
      */
     public function getByUsername(string $username) : ?User {
-        $connection = DBConnectionService::getConnection();
-        $statement = $connection->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE username = :username LIMIT 1;");
+        $statement = $this->db->prepare("SELECT * FROM " . User::TABLE_NAME . " WHERE username = :username LIMIT 1;");
         $statement->bindValue(":username", $username, PDO::PARAM_STR);
         $statement->execute();
         

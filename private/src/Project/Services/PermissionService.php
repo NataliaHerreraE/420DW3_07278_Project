@@ -26,6 +26,8 @@ use Teacher\GivenCode\Exceptions\ValidationException;
  */
 class PermissionService implements IService {
     private PermissionDAO $permissionDao;
+    private UserDao $userDao;
+    private UserGroupDao $userGroupDao;
     
     public function __construct() {
         $this->permissionDao = new PermissionDAO();
